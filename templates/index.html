@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grille d'évaluation — Atelier Git</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f2;
+      --text: #1a1a18;
+      --text-muted: #6b6b67;
+      --border: rgba(0,0,0,0.12);
+      --border-hover: rgba(0,0,0,0.28);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1c;
+        --bg-secondary: #2a2a27;
+        --text: #f0ede6;
+        --text-muted: #9a9a96;
+        --border: rgba(255,255,255,0.12);
+        --border-hover: rgba(255,255,255,0.28);
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-secondary);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .wrapper {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .scorebar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+    }
+
+    .big-num { font-size: 32px; font-weight: 500; line-height: 1; }
+    .big-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .track-wrap { flex: 1; min-width: 120px; }
+    .track { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .fill { height: 100%; border-radius: 999px; transition: width .3s, background .3s; }
+    .pct-lbl { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .mention {
+      font-size: 12px; font-weight: 500;
+      padding: 4px 14px; border-radius: 999px;
+      white-space: nowrap;
+      border: 0.5px solid var(--border);
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+    }
+
+    .rst {
+      background: none;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 12px; color: var(--text-muted);
+      padding: 4px 12px; cursor: pointer;
+      margin-left: auto;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .rst:hover { color: var(--text); border-color: var(--border-hover); }
+
+    .sec-wrap { margin-bottom: 2rem; }
+
+    .sec-hdr {
+      display: flex; align-items: center; gap: 8px;
+      padding-bottom: .5rem;
+      border-bottom: 0.5px solid var(--border);
+      margin-bottom: .75rem;
+    }
+
+    .sec-ico { font-size: 18px; color: var(--text-muted); }
+    .sec-ttl { font-size: 15px; font-weight: 500; }
+
+    .sec-pill {
+      margin-left: auto;
+      font-size: 11px; font-weight: 500;
+      padding: 3px 10px; border-radius: 999px;
+    }
+
+    .crit {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: .85rem 1rem;
+      margin-bottom: 8px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px 12px;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .crit:hover, .crit.open { border-color: var(--border-hover); }
+
+    .cq { font-size: 14px; line-height: 1.5; grid-column: 1; }
+
+    .sp {
+      grid-column: 2; grid-row: 1 / 3;
+      display: flex; gap: 5px; align-items: center;
+    }
+
+    .sb {
+      width: 30px; height: 30px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border);
+      background: var(--bg-secondary);
+      font-size: 13px; font-weight: 500;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      transition: all .1s;
+    }
+    .sb:hover { border-color: var(--border-hover); color: var(--text); }
+    .s1 { background: #FAECE7; border-color: #D85A30; color: #712B13; }
+    .s2 { background: #FAEEDA; border-color: #BA7517; color: #633806; }
+    .s3 { background: #EAF3DE; border-color: #639922; color: #27500A; }
+
+    .hints { display: none; grid-column: 1; margin-top: 4px; }
+    .crit.open .hints { display: block; }
+
+    .hr { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 5px; }
+    .hchip {
+      font-size: 11px; padding: 2px 8px; border-radius: 999px;
+      border: 0.5px solid var(--border);
+      color: var(--text-muted); background: var(--bg-secondary);
+      flex-shrink: 0; white-space: nowrap;
+    }
+    .htxt { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 0.5px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <h1>Grille d'évaluation — Atelier Git</h1>
+  <p class="subtitle">Cliquez sur un critère pour voir les descripteurs. Attribuez un score de 1 à 3.</p>
+
+  <div class="scorebar">
+    <div>
+      <div class="big-num" id="tot">0</div>
+      <div class="big-sub">/ 15 points</div>
+    </div>
+    <div class="track-wrap">
+      <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
+      <div class="pct-lbl" id="pct">0 %</div>
+    </div>
+    <div class="mention" id="men">—</div>
+    <button class="rst" onclick="resetAll()">
+      <i class="ti ti-refresh"></i> Réinitialiser
+    </button>
+  </div>
+
+  <div id="root"></div>
+
+  <footer>Atelier Git — Grille d'évaluation interactive &mdash; 5 critères / 15 pts</footer>
+</div>
+
+<script>
+const data = [
+  {
+    id: "gen",
+    icon: "ti-file-description",
+    title: "Informations générales",
+    pillBg: "#EEEDFE", pillBdr: "#534AB7", pillTxt: "#3C3489",
+    items: [
+      {
+        id: "readme",
+        q: "Le projet inclut un fichier README décrivant son but, son installation et son utilisation.",
+        hints: [
+          { s: 1, l: "Absent",    t: "Aucun README ou fichier totalement vide." },
+          { s: 2, l: "Partiel",   t: "README présent mais incomplet — installation ou utilisation manquante." },
+          { s: 3, l: "Complet",   t: "README clair : but, étapes d'installation et exemples d'utilisation." }
+        ]
+      },
+      {
+        id: "msg",
+        q: "Les messages de commit sont significatifs et précis, sans formules génériques comme « fix » ou « update ».",
+        hints: [
+          { s: 1, l: "Génériques",  t: "Messages vagues : « fix », « wip », « update »." },
+          { s: 2, l: "Inégaux",     t: "Messages descriptifs mais irréguliers ou parfois trop vagues." },
+          { s: 3, l: "Exemplaires", t: "Messages clairs à l'impératif, décrivant le quoi et le pourquoi." }
+        ]
+      }
+    ]
+  },
+  {
+    id: "vcs",
+    icon: "ti-git-branch",
+    title: "Contrôle de version — meilleures pratiques",
+    pillBg: "#E1F5EE", pillBdr: "#0F6E56", pillTxt: "#085041",
+    items: [
+      {
+        id: "branches",
+        q: "Les branches séparent correctement les features, corrections et expérimentations.",
+        hints: [
+          { s: 1, l: "Absent",    t: "Tout le travail est sur main/master, aucune branche distincte." },
+          { s: 2, l: "Partiel",   t: "Quelques branches créées sans convention ni séparation cohérente." },
+          { s: 3, l: "Maîtrisé",  t: "Stratégie claire (feature/, fix/, experiment/) appliquée systématiquement." }
+        ]
+      },
+      {
+        id: "history",
+        q: "L'historique révèle des commits atomiques reflétant des changements logiques.",
+        hints: [
+          { s: 1, l: "Désorganisé", t: "Commits massifs ou incohérents, difficiles à comprendre." },
+          { s: 2, l: "Acceptable",  t: "Commits raisonnables mais parfois trop larges ou mal délimités." },
+          { s: 3, l: "Soigné",      t: "Chaque commit représente un seul changement logique et autonome." }
+        ]
+      },
+      {
+        id: "conflicts",
+        q: "Le participant peut démontrer comment il a géré des conflits et fusionné des branches.",
+        hints: [
+          { s: 1, l: "Aucune notion", t: "Ne connaît pas les conflits ni la fusion de branches." },
+          { s: 2, l: "Théorique",     t: "Comprend le concept mais n'a pas d'expérience pratique à montrer." },
+          { s: 3, l: "Démontré",      t: "Résout les conflits en live et explique merge vs rebase." }
+        ]
+      }
+    ]
+  }
+];
+
+const sc = {};
+const MAX = 15;
+
+function grade(p) {
+  if (p >= 85) return { l: "Excellent",    bg: "#EAF3DE", bd: "#639922", tx: "#27500A" };
+  if (p >= 70) return { l: "Acquis",       bg: "#E1F5EE", bd: "#0F6E56", tx: "#085041" };
+  if (p >= 50) return { l: "Partiel",      bg: "#FAEEDA", bd: "#BA7517", tx: "#633806" };
+  return             { l: "Insuffisant",  bg: "#FAECE7", bd: "#993C1D", tx: "#712B13" };
+}
+
+function upd() {
+  const t = Object.values(sc).reduce((a, b) => a + b, 0);
+  const p = Math.round(t / MAX * 100);
+  document.getElementById("tot").textContent = t;
+  document.getElementById("fill").style.width = p + "%";
+  document.getElementById("pct").textContent = p + " %";
+  const g = grade(p);
+  document.getElementById("fill").style.background = g.bd;
+  const m = document.getElementById("men");
+  m.textContent = g.l;
+  m.style.background = g.bg;
+  m.style.border = "0.5px solid " + g.bd;
+  m.style.color = g.tx;
+}
+
+function setScore(id, v, e) {
+  e.stopPropagation();
+  if (sc[id] === v) delete sc[id]; else sc[id] = v;
+  document.querySelectorAll(`.sb[data-id="${id}"]`).forEach(b => {
+    const bv = +b.dataset.v;
+    b.className = "sb" + (sc[id] === bv ? " s" + bv : "");
+  });
+  upd();
+}
+
+function toggle(id) {
+  const el = document.querySelector(`.crit[data-id="${id}"]`);
+  if (el) el.classList.toggle("open");
+}
+
+function resetAll() {
+  Object.keys(sc).forEach(k => delete sc[k]);
+  document.querySelectorAll(".sb").forEach(b => b.className = "sb");
+  document.querySelectorAll(".crit").forEach(c => c.classList.remove("open"));
+  upd();
+}
+
+function render() {
+  const root = document.getElementById("root");
+  data.forEach(sec => {
+    const wrap = document.createElement("div");
+    wrap.className = "sec-wrap";
+    wrap.innerHTML = `
+      <div class="sec-hdr">
+        <i class="ti ${sec.icon} sec-ico" aria-hidden="true"></i>
+        <span class="sec-ttl">${sec.title}</span>
+        <span class="sec-pill" style="background:${sec.pillBg};border:0.5px solid ${sec.pillBdr};color:${sec.pillTxt}">
+          ${sec.items.length} critère${sec.items.length > 1 ? "s" : ""}
+        </span>
+      </div>
+      ${sec.items.map(it => `
+        <div class="crit" data-id="${it.id}" onclick="toggle('${it.id}')">
+          <div class="cq">${it.q}</div>
+          <div class="sp" onclick="event.stopPropagation()">
+            ${[1, 2, 3].map(v => `
+              <button class="sb" data-id="${it.id}" data-v="${v}"
+                onclick="setScore('${it.id}', ${v}, event)"
+                title="Score ${v}/3">${v}</button>
+            `).join("")}
+          </div>
+          <div class="hints">
+            ${it.hints.map(h => `
+              <div class="hr">
+                <span class="hchip">${h.s}/3 — ${h.l}</span>
+                <span class="htxt">${h.t}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `).join("")}
+    `;
+    root.appendChild(wrap);
+  });
+}
+
+render();
+upd();
+</script>
+</body>
+</html>
