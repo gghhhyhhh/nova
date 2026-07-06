@@ -1,355 +1,658 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Grille d'évaluation — Atelier Git</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌌 Galaxy Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    :root {
-      --bg: #ffffff;
-      --bg-secondary: #f5f5f2;
-      --text: #1a1a18;
-      --text-muted: #6b6b67;
-      --border: rgba(0,0,0,0.12);
-      --border-hover: rgba(0,0,0,0.28);
-      --radius-md: 8px;
-      --radius-lg: 12px;
-    }
+        body {
+            background: #0f0f1a;
+            color: #e0e0ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #1e1e1c;
-        --bg-secondary: #2a2a27;
-        --text: #f0ede6;
-        --text-muted: #9a9a96;
-        --border: rgba(255,255,255,0.12);
-        --border-hover: rgba(255,255,255,0.28);
-      }
-    }
+        .header {
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #2a2a4a;
+        }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg-secondary);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 2rem 1rem;
-    }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e94560;
+        }
 
-    .wrapper {
-      max-width: 760px;
-      margin: 0 auto;
-    }
+        .logo a {
+            color: #e94560;
+            text-decoration: none;
+        }
 
-    h1 {
-      font-size: 22px;
-      font-weight: 500;
-      margin-bottom: 6px;
-    }
+        .search-container {
+            flex: 1;
+            max-width: 600px;
+        }
 
-    .subtitle {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 1.75rem;
-    }
+        .search-form {
+            display: flex;
+            gap: 10px;
+        }
 
-    .scorebar {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      background: var(--bg);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.75rem;
-      flex-wrap: wrap;
-    }
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: 2px solid #2a2a4a;
+            background: #1a1a2e;
+            color: #e0e0ff;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
 
-    .big-num { font-size: 32px; font-weight: 500; line-height: 1; }
-    .big-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .search-input:focus {
+            border-color: #e94560;
+        }
 
-    .track-wrap { flex: 1; min-width: 120px; }
-    .track { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; }
-    .fill { height: 100%; border-radius: 999px; transition: width .3s, background .3s; }
-    .pct-lbl { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .search-btn {
+            padding: 12px 25px;
+            border-radius: 25px;
+            border: none;
+            background: #e94560;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
 
-    .mention {
-      font-size: 12px; font-weight: 500;
-      padding: 4px 14px; border-radius: 999px;
-      white-space: nowrap;
-      border: 0.5px solid var(--border);
-      background: var(--bg-secondary);
-      color: var(--text-muted);
-    }
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
 
-    .rst {
-      background: none;
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-md);
-      font-size: 12px; color: var(--text-muted);
-      padding: 4px 12px; cursor: pointer;
-      margin-left: auto;
-      display: flex; align-items: center; gap: 5px;
-    }
-    .rst:hover { color: var(--text); border-color: var(--border-hover); }
+        .tabs {
+            display: flex;
+            gap: 30px;
+            padding: 15px 40px;
+            border-bottom: 1px solid #2a2a4a;
+        }
 
-    .sec-wrap { margin-bottom: 2rem; }
+        .tab {
+            color: #8888aa;
+            text-decoration: none;
+            padding-bottom: 5px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
 
-    .sec-hdr {
-      display: flex; align-items: center; gap: 8px;
-      padding-bottom: .5rem;
-      border-bottom: 0.5px solid var(--border);
-      margin-bottom: .75rem;
-    }
+        .tab:hover,
+        .tab.active {
+            color: #e94560;
+            border-bottom-color: #e94560;
+        }
 
-    .sec-ico { font-size: 18px; color: var(--text-muted); }
-    .sec-ttl { font-size: 15px; font-weight: 500; }
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
 
-    .sec-pill {
-      margin-left: auto;
-      font-size: 11px; font-weight: 500;
-      padding: 3px 10px; border-radius: 999px;
-    }
+        .results-info {
+            color: #8888aa;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
 
-    .crit {
-      background: var(--bg);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: .85rem 1rem;
-      margin-bottom: 8px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 6px 12px;
-      cursor: pointer;
-      transition: border-color .15s;
-    }
-    .crit:hover, .crit.open { border-color: var(--border-hover); }
+        .error-message {
+            background: #2a1a1a;
+            border: 1px solid #e94560;
+            color: #e94560;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
 
-    .cq { font-size: 14px; line-height: 1.5; grid-column: 1; }
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
 
-    .sp {
-      grid-column: 2; grid-row: 1 / 3;
-      display: flex; gap: 5px; align-items: center;
-    }
+        .media-result {
+            background: #1a1a2e;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #2a2a4a;
+            transition: transform 0.2s;
+        }
 
-    .sb {
-      width: 30px; height: 30px;
-      border-radius: var(--radius-md);
-      border: 0.5px solid var(--border);
-      background: var(--bg-secondary);
-      font-size: 13px; font-weight: 500;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text-muted);
-      transition: all .1s;
-    }
-    .sb:hover { border-color: var(--border-hover); color: var(--text); }
-    .s1 { background: #FAECE7; border-color: #D85A30; color: #712B13; }
-    .s2 { background: #FAEEDA; border-color: #BA7517; color: #633806; }
-    .s3 { background: #EAF3DE; border-color: #639922; color: #27500A; }
+        .media-result:hover {
+            transform: scale(1.03);
+        }
 
-    .hints { display: none; grid-column: 1; margin-top: 4px; }
-    .crit.open .hints { display: block; }
+        .media-result img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
 
-    .hr { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 5px; }
-    .hchip {
-      font-size: 11px; padding: 2px 8px; border-radius: 999px;
-      border: 0.5px solid var(--border);
-      color: var(--text-muted); background: var(--bg-secondary);
-      flex-shrink: 0; white-space: nowrap;
-    }
-    .htxt { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+        .media-result .media-title {
+            padding: 10px;
+            color: #e0e0ff;
+            font-size: 14px;
+            text-decoration: none;
+            display: block;
+        }
 
-    footer {
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 2rem;
-      padding-top: 1rem;
-      border-top: 0.5px solid var(--border);
-    }
-  </style>
+        .media-result .media-meta {
+            padding: 0 10px 10px;
+            color: #8888aa;
+            font-size: 12px;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 15px;
+        }
+
+        .news-result {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #2a2a4a;
+            transition: transform 0.2s;
+        }
+
+        .news-result:hover {
+            transform: translateX(5px);
+        }
+
+        .news-result .news-title {
+            color: #e94560;
+            font-size: 16px;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .news-result .news-source {
+            color: #4a4a6a;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .news-result .news-snippet {
+            color: #a0a0cc;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .news-result .news-date {
+            color: #8888aa;
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        .maps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .map-result {
+            background: #1a1a2e;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #2a2a4a;
+            transition: transform 0.2s;
+        }
+
+        .map-result:hover {
+            transform: translateY(-3px);
+        }
+
+        .map-result .map-info {
+            padding: 15px;
+        }
+
+        .map-result .map-title {
+            color: #e94560;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .map-result .map-address {
+            color: #a0a0cc;
+            font-size: 13px;
+        }
+
+        .map-result .map-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #e94560;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .result {
+            padding: 20px;
+            margin-bottom: 15px;
+            background: #1a1a2e;
+            border-radius: 12px;
+            border: 1px solid #2a2a4a;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .result:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-title {
+            color: #e94560;
+            font-size: 18px;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .result-title:hover {
+            text-decoration: underline;
+        }
+
+        .result-url {
+            color: #4a4a6a;
+            font-size: 12px;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .result-snippet {
+            color: #a0a0cc;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8888aa;
+        }
+
+        .no-results-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .load-more-btn {
+            display: block;
+            margin: 30px auto;
+            padding: 12px 30px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .load-more-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .load-more-btn:disabled {
+            background: #4a4a6a;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #8888aa;
+        }
+
+        .pagination {
+            text-align: center;
+            padding: 40px 20px;
+            color: #8888aa;
+            font-size: 14px;
+            border-top: 1px solid #2a2a4a;
+            margin-top: 20px;
+        }
+
+        .pagination p {
+            margin: 5px 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px;
+            color: #4a4a6a;
+            font-size: 12px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result,
+        .media-result,
+        .news-result,
+        .map-result {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .sub-search-container {
+            display: flex;
+            justify-content: center;
+            padding: 10px 20px;
+        }
+
+        .sub-search-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            padding: 6px 8px 6px 16px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .sub-search-label {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            white-space: nowrap;
+        }
+
+        .sub-search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: inherit;
+            font-size: 0.9rem;
+            padding: 6px 4px;
+            min-width: 0;
+        }
+
+        .sub-search-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.15);
+            color: inherit;
+        }
+
+        .sub-search-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+    </style>
 </head>
+
 <body>
-<div class="wrapper">
-
-  <h1>Grille d'évaluation — Atelier Git</h1>
-  <p class="subtitle">Cliquez sur un critère pour voir les descripteurs. Attribuez un score de 1 à 3.</p>
-
-  <div class="scorebar">
-    <div>
-      <div class="big-num" id="tot">0</div>
-      <div class="big-sub">/ 15 points</div>
-    </div>
-    <div class="track-wrap">
-      <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
-      <div class="pct-lbl" id="pct">0 %</div>
-    </div>
-    <div class="mention" id="men">—</div>
-    <button class="rst" onclick="resetAll()">
-      <i class="ti ti-refresh"></i> Réinitialiser
-    </button>
-  </div>
-
-  <div id="root"></div>
-
-  <footer>Atelier Git — Grille d'évaluation interactive &mdash; 5 critères / 15 pts</footer>
-</div>
-
-<script>
-const data = [
-  {
-    id: "gen",
-    icon: "ti-file-description",
-    title: "Informations générales",
-    pillBg: "#EEEDFE", pillBdr: "#534AB7", pillTxt: "#3C3489",
-    items: [
-      {
-        id: "readme",
-        q: "Le projet inclut un fichier README décrivant son but, son installation et son utilisation.",
-        hints: [
-          { s: 1, l: "Absent",    t: "Aucun README ou fichier totalement vide." },
-          { s: 2, l: "Partiel",   t: "README présent mais incomplet — installation ou utilisation manquante." },
-          { s: 3, l: "Complet",   t: "README clair : but, étapes d'installation et exemples d'utilisation." }
-        ]
-      },
-      {
-        id: "msg",
-        q: "Les messages de commit sont significatifs et précis, sans formules génériques comme « fix » ou « update ».",
-        hints: [
-          { s: 1, l: "Génériques",  t: "Messages vagues : « fix », « wip », « update »." },
-          { s: 2, l: "Inégaux",     t: "Messages descriptifs mais irréguliers ou parfois trop vagues." },
-          { s: 3, l: "Exemplaires", t: "Messages clairs à l'impératif, décrivant le quoi et le pourquoi." }
-        ]
-      }
-    ]
-  },
-  {
-    id: "vcs",
-    icon: "ti-git-branch",
-    title: "Contrôle de version — meilleures pratiques",
-    pillBg: "#E1F5EE", pillBdr: "#0F6E56", pillTxt: "#085041",
-    items: [
-      {
-        id: "branches",
-        q: "Les branches séparent correctement les features, corrections et expérimentations.",
-        hints: [
-          { s: 1, l: "Absent",    t: "Tout le travail est sur main/master, aucune branche distincte." },
-          { s: 2, l: "Partiel",   t: "Quelques branches créées sans convention ni séparation cohérente." },
-          { s: 3, l: "Maîtrisé",  t: "Stratégie claire (feature/, fix/, experiment/) appliquée systématiquement." }
-        ]
-      },
-      {
-        id: "history",
-        q: "L'historique révèle des commits atomiques reflétant des changements logiques.",
-        hints: [
-          { s: 1, l: "Désorganisé", t: "Commits massifs ou incohérents, difficiles à comprendre." },
-          { s: 2, l: "Acceptable",  t: "Commits raisonnables mais parfois trop larges ou mal délimités." },
-          { s: 3, l: "Soigné",      t: "Chaque commit représente un seul changement logique et autonome." }
-        ]
-      },
-      {
-        id: "conflicts",
-        q: "Le participant peut démontrer comment il a géré des conflits et fusionné des branches.",
-        hints: [
-          { s: 1, l: "Aucune notion", t: "Ne connaît pas les conflits ni la fusion de branches." },
-          { s: 2, l: "Théorique",     t: "Comprend le concept mais n'a pas d'expérience pratique à montrer." },
-          { s: 3, l: "Démontré",      t: "Résout les conflits en live et explique merge vs rebase." }
-        ]
-      }
-    ]
-  }
-];
-
-const sc = {};
-const MAX = 15;
-
-function grade(p) {
-  if (p >= 85) return { l: "Excellent",    bg: "#EAF3DE", bd: "#639922", tx: "#27500A" };
-  if (p >= 70) return { l: "Acquis",       bg: "#E1F5EE", bd: "#0F6E56", tx: "#085041" };
-  if (p >= 50) return { l: "Partiel",      bg: "#FAEEDA", bd: "#BA7517", tx: "#633806" };
-  return             { l: "Insuffisant",  bg: "#FAECE7", bd: "#993C1D", tx: "#712B13" };
-}
-
-function upd() {
-  const t = Object.values(sc).reduce((a, b) => a + b, 0);
-  const p = Math.round(t / MAX * 100);
-  document.getElementById("tot").textContent = t;
-  document.getElementById("fill").style.width = p + "%";
-  document.getElementById("pct").textContent = p + " %";
-  const g = grade(p);
-  document.getElementById("fill").style.background = g.bd;
-  const m = document.getElementById("men");
-  m.textContent = g.l;
-  m.style.background = g.bg;
-  m.style.border = "0.5px solid " + g.bd;
-  m.style.color = g.tx;
-}
-
-function setScore(id, v, e) {
-  e.stopPropagation();
-  if (sc[id] === v) delete sc[id]; else sc[id] = v;
-  document.querySelectorAll(`.sb[data-id="${id}"]`).forEach(b => {
-    const bv = +b.dataset.v;
-    b.className = "sb" + (sc[id] === bv ? " s" + bv : "");
-  });
-  upd();
-}
-
-function toggle(id) {
-  const el = document.querySelector(`.crit[data-id="${id}"]`);
-  if (el) el.classList.toggle("open");
-}
-
-function resetAll() {
-  Object.keys(sc).forEach(k => delete sc[k]);
-  document.querySelectorAll(".sb").forEach(b => b.className = "sb");
-  document.querySelectorAll(".crit").forEach(c => c.classList.remove("open"));
-  upd();
-}
-
-function render() {
-  const root = document.getElementById("root");
-  data.forEach(sec => {
-    const wrap = document.createElement("div");
-    wrap.className = "sec-wrap";
-    wrap.innerHTML = `
-      <div class="sec-hdr">
-        <i class="ti ${sec.icon} sec-ico" aria-hidden="true"></i>
-        <span class="sec-ttl">${sec.title}</span>
-        <span class="sec-pill" style="background:${sec.pillBg};border:0.5px solid ${sec.pillBdr};color:${sec.pillTxt}">
-          ${sec.items.length} critère${sec.items.length > 1 ? "s" : ""}
-        </span>
-      </div>
-      ${sec.items.map(it => `
-        <div class="crit" data-id="${it.id}" onclick="toggle('${it.id}')">
-          <div class="cq">${it.q}</div>
-          <div class="sp" onclick="event.stopPropagation()">
-            ${[1, 2, 3].map(v => `
-              <button class="sb" data-id="${it.id}" data-v="${v}"
-                onclick="setScore('${it.id}', ${v}, event)"
-                title="Score ${v}/3">${v}</button>
-            `).join("")}
-          </div>
-          <div class="hints">
-            ${it.hints.map(h => `
-              <div class="hr">
-                <span class="hchip">${h.s}/3 — ${h.l}</span>
-                <span class="htxt">${h.t}</span>
-              </div>
-            `).join("")}
-          </div>
+    <div class="header">
+        <div class="logo"><a href="/">🌌 GS</a></div>
+        <div class="search-container">
+            <form class="search-form" method="GET" id="searchForm"
+                action="{% if category == 'images' %}/search/images{% elif category == 'videos' %}/search/videos{% elif category == 'news' %}/search/news{% elif category == 'map' or category == 'maps' %}/search/maps{% else %}/search{% endif %}">
+                <input type="text" name="q" class="search-input" placeholder="Rechercher dans la galaxie..."
+                    value="{{ query }}" autocomplete="off" />
+                <button type="submit" class="search-btn">Explorer</button>
+            </form>
         </div>
-      `).join("")}
-    `;
-    root.appendChild(wrap);
-  });
-}
+    </div>
 
-render();
-upd();
-</script>
+    <div class="tabs">
+        <a href="/search?q={{ query | urlencode }}"
+            class="tab {% if category == 'general' or category == 'web' %}active{% endif %}">Web</a>
+        <a href="/search/images?q={{ query | urlencode }}"
+            class="tab {% if category == 'images' %}active{% endif %}">Images</a>
+        <a href="/search/videos?q={{ query | urlencode }}"
+            class="tab {% if category == 'videos' %}active{% endif %}">Vidéos</a>
+        <a href="/search/news?q={{ query | urlencode }}"
+            class="tab {% if category == 'news' %}active{% endif %}">News</a>
+        <a href="/search/maps?q={{ query | urlencode }}"
+            class="tab {% if category == 'map' or category == 'maps' %}active{% endif %}">Maps</a>
+    </div>
+
+    {% if query %}
+    <div class="sub-search-container">
+        <form class="sub-search-form" id="subSearchForm" method="GET"
+            action="{% if category == 'images' %}/search/images{% elif category == 'videos' %}/search/videos{% elif category == 'news' %}/search/news{% elif category == 'map' or category == 'maps' %}/search/maps{% else %}/search{% endif %}">
+            <span class="sub-search-label">🔎 Affiner « {{ query }} » avec :</span>
+            <input type="hidden" id="subSearchHiddenQuery" name="q" value="{{ query }}" />
+            <input type="text" id="subSearchInput" class="sub-search-input" name="refine"
+                placeholder="ex: 2026, résultats, actualités..." autocomplete="off" />
+            <button type="submit" class="sub-search-btn">Affiner</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="results-container">
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        {% if query %}
+        {% if results | length > 0 %}
+        <div class="results-info">{{ results | length }} résultat(s) trouvé(s) pour "{{ query }}"</div>
+
+        {% if category == 'images' %}
+        <div class="media-grid" id="resultsGrid">
+            {% for result in results %}
+            <div class="media-result">
+                <a href="{{ result.url }}">
+                    {% if result.img_src or result.thumbnail or result.thumbnail_src %}
+                    <img src="{{ result.img_src | default(value=result.thumbnail) | default(value=result.thumbnail_src) }}"
+                        alt="{{ result.title }}" loading="lazy"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    <div
+                        style="height: 200px; background: #2a2a4a; display: none; align-items: center; justify-content: center; font-size: 48px;">
+                        🖼️</div>
+                    {% else %}
+                    <div
+                        style="height: 200px; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                        🖼️</div>
+                    {% endif %}
+                    <span class="media-title">{{ result.title }}</span>
+                </a>
+                <div class="media-meta">{{ result.url }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% elif category == 'videos' %}
+        <div class="media-grid" id="resultsGrid">
+            {% for result in results %}
+            <div class="media-result">
+                <a href="{{ result.url }}">
+                    {% if result.thumbnail or result.thumbnail_src or result.img_src %}
+                    <img src="{{ result.thumbnail | default(value=result.thumbnail_src) | default(value=result.img_src) }}"
+                        alt="{{ result.title }}" loading="lazy"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    <div
+                        style="height: 200px; background: #2a2a4a; display: none; align-items: center; justify-content: center; font-size: 48px;">
+                        ▶️</div>
+                    {% else %}
+                    <div
+                        style="height: 200px; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                        ▶️</div>
+                    {% endif %}
+                    <span class="media-title">{{ result.title }}</span>
+                </a>
+                <div class="media-meta">{{ result.snippet }}</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% elif category == 'news' %}
+        <div class="news-grid" id="resultsGrid">
+            {% for result in results %}
+            <div class="news-result">
+                <a href="{{ result.url }}" class="news-title">{{ result.title }}</a>
+                <div class="news-source">{{ result.url }}</div>
+                <div class="news-snippet">{{ result.snippet }}</div>
+                {% if result.published_date %}
+                <div class="news-date">📅 {{ result.published_date }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        {% elif category == 'map' or category == 'maps' %}
+        <div class="maps-grid" id="resultsGrid">
+            {% for result in results %}
+            <div class="map-result">
+                <div class="map-info">
+                    <div class="map-title">{{ result.title }}</div>
+                    <div class="map-address">{{ result.snippet }}</div>
+                    <a href="{{ result.url }}" class="map-link">Voir sur la carte →</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div id="resultsGrid">
+            {% for result in results %}
+            <div class="result">
+                <a href="{{ result.url }}" class="result-title">{{ result.title }}</a>
+                <div class="result-url">{{ result.url }}</div>
+                <div class="result-snippet">{{ result.snippet }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="loading-spinner" id="loadingSpinner">Chargement...</div>
+        <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">Charger plus de résultats</button>
+
+        <div class="pagination">
+            <p>📊 <span id="resultCount">{{ results | length }}</span> résultats affichés</p>
+        </div>
+        {% else %}
+        {% if not error %}
+        <div class="no-results">
+            <div class="no-results-icon">🔭</div>
+            <h2>Aucun résultat trouvé</h2>
+            <p>Essayez avec d'autres termes de recherche</p>
+        </div>
+        {% endif %}
+        {% endif %}
+        {% else %}
+        <div class="no-results">
+            <div class="no-results-icon">🌌</div>
+            <h2>Bienvenue sur Galaxy Search</h2>
+            <p>Entrez votre recherche pour explorer l'univers</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="footer">Galaxy Search © 2026 — Propulsé par Rust 🦀 & SearXNG</div>
+
+    <script>
+        let currentQuery = "{{ query }}";
+        let currentCategory = "{{ category }}";
+
+        // Fait correspondre la catégorie active à son chemin de recherche
+        function categoryToPath(cat) {
+            switch (cat) {
+                case 'images': return '/search/images';
+                case 'videos': return '/search/videos';
+                case 'news': return '/search/news';
+                case 'map':
+                case 'maps': return '/search/maps';
+                default: return '/search';
+            }
+        }
+
+        const subSearchForm = document.getElementById('subSearchForm');
+        if (subSearchForm) {
+            subSearchForm.addEventListener('submit', function (e) {
+                const subInput = document.getElementById('subSearchInput');
+                const hiddenQuery = document.getElementById('subSearchHiddenQuery');
+                const subValue = subInput.value.trim();
+                if (!subValue) {
+                    e.preventDefault();
+                    return;
+                }
+
+                hiddenQuery.value = `${currentQuery} ${subValue}`.trim();
+            });
+        }
+
+        async function loadMore() {
+            const btn = document.getElementById('loadMoreBtn');
+            const spinner = document.getElementById('loadingSpinner');
+            const grid = document.getElementById('resultsGrid');
+            const count = document.getElementById('resultCount');
+
+            btn.disabled = true;
+            spinner.style.display = 'block';
+
+            try {
+                const response = await fetch(`/api/load-more?q=${encodeURIComponent(currentQuery)}`);
+                const newResults = await response.json();
+
+                if (newResults.length === 0) {
+                    btn.textContent = 'Plus de résultats disponibles';
+                    btn.style.display = 'none';
+                    return;
+                }
+
+                // Ajouter les nouveaux résultats
+                newResults.forEach(result => {
+                    const div = document.createElement('div');
+                    div.className = 'result';
+                    div.innerHTML = `
+                        <a href="${result.url}" class="result-title">${result.title}</a>
+                        <div class="result-url">${result.url}</div>
+                        <div class="result-snippet">${result.snippet}</div>
+                    `;
+                    grid.appendChild(div);
+                });
+
+                // Mettre à jour le compteur
+                const currentCount = parseInt(count.textContent) + newResults.length;
+                count.textContent = currentCount;
+
+            } catch (err) {
+                console.error('Erreur:', err);
+                btn.textContent = 'Erreur de chargement';
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
 </body>
+
 </html>
