@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        NOVA - {{ topic.title }}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/reseaux.css"
+    >
+</head>
+
+<body>
+
+    <main class="networks-page">
+
+        <section class="forum-header">
+
+            <div>
+
+                <h1>
+                    {{ topic.title }}
+                </h1>
+
+                {% if topic.created_at %}
+
+                    <p>
+                        {{ topic.created_at }}
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </section>
+
+        <section class="forum-categories">
+
+            {% for post in posts %}
+
+                <article class="forum-category">
+
+                    <div>
+
+                        <p>
+                            {{ post.content }}
+                        </p>
+
+                        {% if post.created_at %}
+
+                            <small>
+                                {{ post.created_at }}
+                            </small>
+
+                        {% endif %}
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </section>
+
+        <section class="forum-categories">
+
+            <a href="/reseaux">
+                ← Retour aux sujets
+            </a>
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>

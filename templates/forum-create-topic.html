@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>NOVA - Créer un sujet</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/reseaux.css"
+    >
+</head>
+
+<body>
+
+    <main class="networks-page">
+
+        <section class="forum-header">
+
+            <div>
+
+                <h1>
+                    Créer un sujet
+                </h1>
+
+                <p>
+                    Créez votre propre discussion sur les réseaux.
+                </p>
+
+            </div>
+
+        </section>
+
+        <section class="forum-categories">
+
+            <form
+                action="/reseaux/create"
+                method="POST"
+            >
+
+                <div>
+
+                    <label for="title">
+                        Titre
+                    </label>
+
+                    <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        required
+                        maxlength="200"
+                    >
+
+                </div>
+
+                <div>
+
+                    <label for="content">
+                        Message
+                    </label>
+
+                    <textarea
+                        id="content"
+                        name="content"
+                        rows="10"
+                        required
+                    ></textarea>
+
+                </div>
+
+                <button type="submit">
+                    Publier le sujet
+                </button>
+
+            </form>
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>

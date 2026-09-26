@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>NOVA - Réseaux</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/reseaux.css"
+    >
+</head>
+
+<body>
+
+    <main class="networks-page">
+
+        <section class="forum-header">
+
+            <div>
+
+                <h1>Réseaux</h1>
+
+                <p>
+                    Forum public — échangez, partagez et apprenez sur les réseaux.
+                </p>
+
+            </div>
+
+        </section>
+
+        <section class="forum-categories">
+
+            <div>
+
+                <h2>Sujets</h2>
+
+                <a href="/reseaux/create">
+                    Créer un sujet
+                </a>
+
+            </div>
+
+            {% if topics | length > 0 %}
+
+                {% for topic in topics %}
+
+                    <a
+                        href="/reseaux/{{ topic.id }}"
+                        class="forum-category"
+                    >
+
+                        <div>
+
+                            <h3>
+                                {{ topic.title }}
+                            </h3>
+
+                            {% if topic.created_at %}
+
+                                <p>
+                                    {{ topic.created_at }}
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+                        <span>
+                            →
+                        </span>
+
+                    </a>
+
+                {% endfor %}
+
+            {% else %}
+
+                <p>
+                    Aucun sujet pour le moment.
+                </p>
+
+            {% endif %}
+
+        </section>
+
+    </main>
+
+</body>
+
+</html>

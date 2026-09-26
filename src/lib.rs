@@ -3,6 +3,7 @@ pub mod knowledge_base;
 pub mod models;
 pub mod nlp;
 pub mod search_engine;
+pub mod workspace;
 
 pub use config::DbConfig;
 pub use knowledge_base::{KnowledgeBase, KnowledgeEntry, RelatedLink};

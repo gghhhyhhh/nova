@@ -39,7 +39,9 @@ impl KnowledgeBase {
             .filter(|e| {
                 e.title.to_lowercase().contains(&query_lower)
                     || e.content.to_lowercase().contains(&query_lower)
-                    || e.tags.iter().any(|t| t.to_lowercase().contains(&query_lower))
+                    || e.tags
+                        .iter()
+                        .any(|t| t.to_lowercase().contains(&query_lower))
             })
             .collect()
     }

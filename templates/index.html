@@ -4,444 +4,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌌 Galaxy Search</title>
+    <title>NOVA</title>
+        <link rel="stylesheet" href="/static/css/index.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #0f0f1a;
-            color: #e0e0ff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-        }
-
-        .header {
-            padding: 20px 40px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            border-bottom: 1px solid #2a2a4a;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            color: #e94560;
-        }
-
-        .logo a {
-            color: #e94560;
-            text-decoration: none;
-        }
-
-        .search-container {
-            flex: 1;
-            max-width: 600px;
-        }
-
-        .search-form {
-            display: flex;
-            gap: 10px;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 12px 20px;
-            border-radius: 25px;
-            border: 2px solid #2a2a4a;
-            background: #1a1a2e;
-            color: #e0e0ff;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .search-input:focus {
-            border-color: #e94560;
-        }
-
-        .search-btn {
-            padding: 12px 25px;
-            border-radius: 25px;
-            border: none;
-            background: #e94560;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
-        }
-
-        .tabs {
-            display: flex;
-            gap: 30px;
-            padding: 15px 40px;
-            border-bottom: 1px solid #2a2a4a;
-        }
-
-        .tab {
-            color: #8888aa;
-            text-decoration: none;
-            padding-bottom: 5px;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .tab:hover,
-        .tab.active {
-            color: #e94560;
-            border-bottom-color: #e94560;
-        }
-
-        .results-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
-
-        .results-info {
-            color: #8888aa;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .error-message {
-            background: #2a1a1a;
-            border: 1px solid #e94560;
-            color: #e94560;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 15px;
-        }
-
-        .media-result {
-            background: #1a1a2e;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #2a2a4a;
-            transition: transform 0.2s;
-        }
-
-        .media-result:hover {
-            transform: scale(1.03);
-        }
-
-        .media-result img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            display: block;
-        }
-
-        .media-result .media-title {
-            padding: 10px;
-            color: #e0e0ff;
-            font-size: 14px;
-            text-decoration: none;
-            display: block;
-        }
-
-        .media-result .media-meta {
-            padding: 0 10px 10px;
-            color: #8888aa;
-            font-size: 12px;
-        }
-
-        .news-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 15px;
-        }
-
-        .news-result {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #2a2a4a;
-            transition: transform 0.2s;
-        }
-
-        .news-result:hover {
-            transform: translateX(5px);
-        }
-
-        .news-result .news-title {
-            color: #e94560;
-            font-size: 16px;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        .news-result .news-source {
-            color: #4a4a6a;
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-
-        .news-result .news-snippet {
-            color: #a0a0cc;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .news-result .news-date {
-            color: #8888aa;
-            font-size: 11px;
-            margin-top: 8px;
-        }
-
-        .maps-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-        }
-
-        .map-result {
-            background: #1a1a2e;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #2a2a4a;
-            transition: transform 0.2s;
-        }
-
-        .map-result:hover {
-            transform: translateY(-3px);
-        }
-
-        .map-result .map-info {
-            padding: 15px;
-        }
-
-        .map-result .map-title {
-            color: #e94560;
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .map-result .map-address {
-            color: #a0a0cc;
-            font-size: 13px;
-        }
-
-        .map-result .map-link {
-            display: inline-block;
-            margin-top: 10px;
-            color: #e94560;
-            text-decoration: none;
-            font-size: 13px;
-        }
-
-        .result {
-            padding: 20px;
-            margin-bottom: 15px;
-            background: #1a1a2e;
-            border-radius: 12px;
-            border: 1px solid #2a2a4a;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .result:hover {
-            transform: translateX(5px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .result-title {
-            color: #e94560;
-            font-size: 18px;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .result-title:hover {
-            text-decoration: underline;
-        }
-
-        .result-url {
-            color: #4a4a6a;
-            font-size: 12px;
-            margin-bottom: 8px;
-            word-break: break-all;
-        }
-
-        .result-snippet {
-            color: #a0a0cc;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 60px 20px;
-            color: #8888aa;
-        }
-
-        .no-results-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-
-        .load-more-btn {
-            display: block;
-            margin: 30px auto;
-            padding: 12px 30px;
-            background: #e94560;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.2s;
-        }
-
-        .load-more-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .load-more-btn:disabled {
-            background: #4a4a6a;
-            cursor: not-allowed;
-        }
-
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #8888aa;
-        }
-
-        .pagination {
-            text-align: center;
-            padding: 40px 20px;
-            color: #8888aa;
-            font-size: 14px;
-            border-top: 1px solid #2a2a4a;
-            margin-top: 20px;
-        }
-
-        .pagination p {
-            margin: 5px 0;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 40px;
-            color: #4a4a6a;
-            font-size: 12px;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .result,
-        .media-result,
-        .news-result,
-        .map-result {
-            animation: fadeIn 0.5s ease-out;
-        }
-        .sub-search-container {
-            display: flex;
-            justify-content: center;
-            padding: 10px 20px;
-        }
-
-        .sub-search-form {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 999px;
-            padding: 6px 8px 6px 16px;
-            max-width: 600px;
-            width: 100%;
-        }
-
-        .sub-search-label {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            white-space: nowrap;
-        }
-
-        .sub-search-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: inherit;
-            font-size: 0.9rem;
-            padding: 6px 4px;
-            min-width: 0;
-        }
-
-        .sub-search-btn {
-            border: none;
-            border-radius: 999px;
-            padding: 6px 16px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.15);
-            color: inherit;
-        }
-
-        .sub-search-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
+        
     </style>
 </head>
 
 <body>
     <div class="header">
-        <div class="logo"><a href="/">🌌 GS</a></div>
+        <div class="logo"><a href="/">NOVA</a></div>
         <div class="search-container">
             <form class="search-form" method="GET" id="searchForm"
                 action="{% if category == 'images' %}/search/images{% elif category == 'videos' %}/search/videos{% elif category == 'news' %}/search/news{% elif category == 'map' or category == 'maps' %}/search/maps{% else %}/search{% endif %}">
                 <input type="text" name="q" class="search-input" placeholder="Rechercher dans la galaxie..."
                     value="{{ query }}" autocomplete="off" />
+                <input type="hidden" name="project" value="{{ current_project | default(value='') }}" />
                 <button type="submit" class="search-btn">Explorer</button>
             </form>
         </div>
     </div>
 
     <div class="tabs">
-        <a href="/search?q={{ query | urlencode }}"
+        <a href="/search?q={{ query | urlencode }}&project={{ current_project | default(value='') }}"
             class="tab {% if category == 'general' or category == 'web' %}active{% endif %}">Web</a>
-        <a href="/search/images?q={{ query | urlencode }}"
+        <a href="/search/images?q={{ query | urlencode }}&project={{ current_project | default(value='') }}"
             class="tab {% if category == 'images' %}active{% endif %}">Images</a>
-        <a href="/search/videos?q={{ query | urlencode }}"
+        <a href="/search/videos?q={{ query | urlencode }}&project={{ current_project | default(value='') }}"
             class="tab {% if category == 'videos' %}active{% endif %}">Vidéos</a>
-        <a href="/search/news?q={{ query | urlencode }}"
+        <a href="/search/news?q={{ query | urlencode }}&project={{ current_project | default(value='') }}"
             class="tab {% if category == 'news' %}active{% endif %}">News</a>
-        <a href="/search/maps?q={{ query | urlencode }}"
+        <a href="/search/maps?q={{ query | urlencode }}&project={{ current_project | default(value='') }}"
             class="tab {% if category == 'map' or category == 'maps' %}active{% endif %}">Maps</a>
     </div>
+
+    {% if ancestors | length > 0 %}
+    <div class="branch-panel">
+        <div class="branch-breadcrumb">
+            <span>Branche :</span>
+            {% for node in ancestors %}
+            {% if not loop.last %}
+            <a href="/search?q={{ node.query | urlencode }}&parent={{ node.parent_id | default(value='') }}&project={{ current_project | default(value='') }}&category={{ node.category }}">{{ node.query }}</a>
+            <span>→</span>
+            {% else %}
+            <span class="current">{{ node.query }}</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% if siblings | length > 0 %}
+        <div class="branch-siblings">
+            <span class="branch-siblings-label">🔀 Autres pistes explorées ici :</span>
+            {% for sib in siblings %}
+            <a href="/search?q={{ sib.query | urlencode }}&parent={{ sib.parent_id | default(value='') }}&project={{ current_project | default(value='') }}">{{ sib.query }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 
     {% if query %}
     <div class="sub-search-container">
@@ -449,12 +68,22 @@
             action="{% if category == 'images' %}/search/images{% elif category == 'videos' %}/search/videos{% elif category == 'news' %}/search/news{% elif category == 'map' or category == 'maps' %}/search/maps{% else %}/search{% endif %}">
             <span class="sub-search-label">🔎 Affiner « {{ query }} » avec :</span>
             <input type="hidden" id="subSearchHiddenQuery" name="q" value="{{ query }}" />
+            <input type="hidden" name="parent" value="{% if ancestors | length > 0 %}{{ ancestors[0].id }}{% else %}{{ current_node_id | default(value='') }}{% endif %}" />
+            <input type="hidden" name="project" value="{{ current_project | default(value='') }}" />
             <input type="text" id="subSearchInput" class="sub-search-input" name="refine"
                 placeholder="ex: 2026, résultats, actualités..." autocomplete="off" />
             <button type="submit" class="sub-search-btn">Affiner</button>
         </form>
     </div>
     {% endif %}
+
+    <div class="grid-panel-inline" id="projectsPanel">
+        <div id="projectsPanelList" class="panel-grid">Chargement...</div>
+    </div>
+
+    <div class="grid-panel-inline" id="historyPanel">
+        <div id="historyPanelList" class="panel-grid">Chargement...</div>
+    </div>
 
     <div class="results-container">
         {% if error %}
@@ -475,11 +104,11 @@
                         alt="{{ result.title }}" loading="lazy"
                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                     <div
-                        style="height: 200px; background: #2a2a4a; display: none; align-items: center; justify-content: center; font-size: 48px;">
+                        style="height: 200px; background: #2b3a26; display: none; align-items: center; justify-content: center; font-size: 48px;">
                         🖼️</div>
                     {% else %}
                     <div
-                        style="height: 200px; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                        style="height: 200px; background: #2b3a26; display: flex; align-items: center; justify-content: center; font-size: 48px;">
                         🖼️</div>
                     {% endif %}
                     <span class="media-title">{{ result.title }}</span>
@@ -499,11 +128,11 @@
                         alt="{{ result.title }}" loading="lazy"
                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                     <div
-                        style="height: 200px; background: #2a2a4a; display: none; align-items: center; justify-content: center; font-size: 48px;">
+                        style="height: 200px; background: #2b3a26; display: none; align-items: center; justify-content: center; font-size: 48px;">
                         ▶️</div>
                     {% else %}
                     <div
-                        style="height: 200px; background: #2a2a4a; display: flex; align-items: center; justify-content: center; font-size: 48px;">
+                        style="height: 200px; background: #2b3a26; display: flex; align-items: center; justify-content: center; font-size: 48px;">
                         ▶️</div>
                     {% endif %}
                     <span class="media-title">{{ result.title }}</span>
@@ -568,91 +197,68 @@
         {% endif %}
         {% endif %}
         {% else %}
-        <div class="no-results">
-            <div class="no-results-icon">🌌</div>
-            <h2>Bienvenue sur Galaxy Search</h2>
-            <p>Entrez votre recherche pour explorer l'univers</p>
-        </div>
         {% endif %}
     </div>
 
-    <div class="footer">Galaxy Search © 2026 — Propulsé par Rust 🦀 & SearXNG</div>
+    <div class="ia-overlay" id="iaOverlay">
+        <div class="ia-panel">
+            <div class="ia-panel-header">
+                <span>🤖 Assistant IA locale</span>
+                <button class="ia-panel-close" id="iaPanelClose">✕</button>
+            </div>
+            <div id="iaPanelBody">
+                <iframe id="iaIframe" src="" title="Assistant IA locale"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <h3>⚙️ Paramètres</h3>
+        <p>📁 Projets : max <strong>3 par jour</strong> (gratuit)</p>
+        <p>👥 Membres par groupe : max <strong>5</strong> (gratuit)</p>
+        <p>🗂️ Historique : les 5 dernières recherches par session sont conservées</p>
+        <p style="opacity:0.7; font-size:0.75rem;">Passe à la version premium pour des limites illimitées.</p>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="bottom-nav-item" id="navReseaux">
+            <span class="icon">👥</span>
+            <span>Réseaux</span>
+        </button>
+        <button class="bottom-nav-item" id="navProjets">
+            <span class="icon">📁</span>
+            <span>Mes projets</span>
+        </button>
+        <button class="bottom-nav-item" id="navHistorique">
+            <span class="icon">🕓</span>
+            <span>Historique</span>
+        </button>
+        <button class="bottom-nav-item" id="navWeb">
+            <span class="icon">🌐</span>
+            <span>Web</span>
+        </button>
+        <button class="bottom-nav-item" id="navIA">
+            <span class="icon">🤖</span>
+            <span>IA</span>
+        </button>
+        <button class="bottom-nav-item" id="navCarte">
+            <span class="icon">🗺️</span>
+            <span>Carte</span>
+        </button>
+        <button class="bottom-nav-item" id="navParametres">
+            <span class="icon">⚙️</span>
+            <span>Paramètres</span>
+        </button>
+    </div>
+
+    <div class="footer"></div>
+
+    <div class="toast" id="toast"></div>
 
     <script>
-        let currentQuery = "{{ query }}";
-        let currentCategory = "{{ category }}";
-
-        // Fait correspondre la catégorie active à son chemin de recherche
-        function categoryToPath(cat) {
-            switch (cat) {
-                case 'images': return '/search/images';
-                case 'videos': return '/search/videos';
-                case 'news': return '/search/news';
-                case 'map':
-                case 'maps': return '/search/maps';
-                default: return '/search';
-            }
-        }
-
-        const subSearchForm = document.getElementById('subSearchForm');
-        if (subSearchForm) {
-            subSearchForm.addEventListener('submit', function (e) {
-                const subInput = document.getElementById('subSearchInput');
-                const hiddenQuery = document.getElementById('subSearchHiddenQuery');
-                const subValue = subInput.value.trim();
-                if (!subValue) {
-                    e.preventDefault();
-                    return;
-                }
-
-                hiddenQuery.value = `${currentQuery} ${subValue}`.trim();
-            });
-        }
-
-        async function loadMore() {
-            const btn = document.getElementById('loadMoreBtn');
-            const spinner = document.getElementById('loadingSpinner');
-            const grid = document.getElementById('resultsGrid');
-            const count = document.getElementById('resultCount');
-
-            btn.disabled = true;
-            spinner.style.display = 'block';
-
-            try {
-                const response = await fetch(`/api/load-more?q=${encodeURIComponent(currentQuery)}`);
-                const newResults = await response.json();
-
-                if (newResults.length === 0) {
-                    btn.textContent = 'Plus de résultats disponibles';
-                    btn.style.display = 'none';
-                    return;
-                }
-
-                // Ajouter les nouveaux résultats
-                newResults.forEach(result => {
-                    const div = document.createElement('div');
-                    div.className = 'result';
-                    div.innerHTML = `
-                        <a href="${result.url}" class="result-title">${result.title}</a>
-                        <div class="result-url">${result.url}</div>
-                        <div class="result-snippet">${result.snippet}</div>
-                    `;
-                    grid.appendChild(div);
-                });
-
-                // Mettre à jour le compteur
-                const currentCount = parseInt(count.textContent) + newResults.length;
-                count.textContent = currentCount;
-
-            } catch (err) {
-                console.error('Erreur:', err);
-                btn.textContent = 'Erreur de chargement';
-            } finally {
-                btn.disabled = false;
-                spinner.style.display = 'none';
-            }
-        }
+        
     </script>
+    <script src="/static/js/index.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,15 @@
+# Web & recherche (gratuits, sans clé API)
+requests
+beautifulsoup4
+duckduckgo-search
+youtube-transcript-api
+
+# Images (OCR + description locale)
+pillow
+pytesseract
+transformers
+torch
+
+# Vidéo / audio (transcription locale)
+openai-whisper
+opencv-python

@@ -96,6 +96,17 @@ impl SearchEngine {
         Ok(all_results)
     }
 
+    /// Recherche une page précise (1-indexée). Utilisé pour la pagination réelle
+    /// du bouton "Charger plus", afin de ne jamais réafficher deux fois la même page.
+    pub async fn search_specific_page(
+        &self,
+        query: &str,
+        category: SearchCategory,
+        page: u32,
+    ) -> Result<Vec<SearchResult>, reqwest::Error> {
+        self.search_page(query, category, page).await
+    }
+
     async fn search_page(
         &self,
         query: &str,
@@ -103,13 +114,25 @@ impl SearchEngine {
         page: u32,
     ) -> Result<Vec<SearchResult>, reqwest::Error> {
         let encoded = urlencoding::encode(query);
+
+        let engines = match category {
+            SearchCategory::Web => "bing",
+            SearchCategory::Images => "bing images",
+            SearchCategory::Videos => "bing videos",
+            SearchCategory::News => "bing news",
+            SearchCategory::Maps => "openstreetmap",
+        };
+
         let url = format!(
-            "{}/search?q={}&format=json&language=fr&pageno={}&categories={}",
+            "{}/search?q={}&format=json&language=fr&pageno={}&categories={}&engines={}",
             self.searxng_url,
             encoded,
             page,
-            category.as_str()
+            category.as_str(),
+            urlencoding::encode(engines)
         );
+
+        println!("🔎 Recherche SearXNG : {}", url);
 
         let response = self
             .client
@@ -118,7 +141,12 @@ impl SearchEngine {
             .send()
             .await?;
 
+        let status = response.status();
+
         let json_text = response.text().await?;
+
+        println!("📡 SearXNG HTTP : {}", status);
+
         let results = self.parse_searxng_json(&json_text);
 
         Ok(results)
@@ -162,11 +190,16 @@ impl SearchEngine {
 
         let total_before = data.results.len();
 
-        let filtered = data.results
+        let filtered = data
+            .results
             .into_iter()
             .filter(|r| {
                 let url = r.url.trim();
-                !url.is_empty() && (url.starts_with("http://") || url.starts_with("https://") || url.starts_with("//"))
+
+                !url.is_empty()
+                    && (url.starts_with("http://")
+                        || url.starts_with("https://")
+                        || url.starts_with("//"))
             })
             .map(|r| SearchResult {
                 title: r.title,
