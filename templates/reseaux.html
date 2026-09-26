@@ -33,52 +33,68 @@
 
             </div>
 
+            <a
+                href="/"
+                class="back-menu"
+            >
+                Retour au menu
+            </a>
+
         </section>
+
 
         <section class="forum-categories">
 
-            <div>
+            <div class="topics-header">
 
                 <h2>Sujets</h2>
 
-                <a href="/reseaux/create">
+                <a
+                    href="/reseaux/create"
+                    class="create-topic"
+                >
                     Créer un sujet
                 </a>
 
             </div>
 
+
             {% if topics | length > 0 %}
 
-                {% for topic in topics %}
+                <div class="topics-grid">
 
-                    <a
-                        href="/reseaux/{{ topic.id }}"
-                        class="forum-category"
-                    >
+                    {% for topic in topics %}
 
-                        <div>
+                        <a
+                            href="/reseaux/{{ topic.id }}"
+                            class="forum-category"
+                        >
 
-                            <h3>
-                                {{ topic.title }}
-                            </h3>
+                            <div>
 
-                            {% if topic.created_at %}
+                                <h3>
+                                    {{ topic.title }}
+                                </h3>
 
-                                <p>
-                                    {{ topic.created_at }}
-                                </p>
+                                {% if topic.created_at %}
 
-                            {% endif %}
+                                    <p>
+                                        {{ topic.created_at }}
+                                    </p>
 
-                        </div>
+                                {% endif %}
 
-                        <span>
-                            →
-                        </span>
+                            </div>
 
-                    </a>
+                            <span>
+                                →
+                            </span>
 
-                {% endfor %}
+                        </a>
+
+                    {% endfor %}
+
+                </div>
 
             {% else %}
 

@@ -1,4 +1,5 @@
 use actix_web::{web, HttpResponse, Responder};
+use chrono::{FixedOffset, NaiveDateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use tera::{Context, Tera};
@@ -92,7 +93,7 @@ pub async fn index(pool: web::Data<SqlitePool>, tera: web::Data<Tera>) -> impl R
             .map(|(id, title, created_at)| ForumTopic {
                 id,
                 title,
-                created_at,
+                created_at: format_date_fr(created_at),
             })
             .collect::<Vec<ForumTopic>>(),
 
@@ -204,7 +205,7 @@ pub async fn topic(
         Ok(Some((id, title, created_at))) => ForumTopic {
             id,
             title,
-            created_at,
+            created_at: format_date_fr(created_at),
         },
 
         Ok(None) => {
@@ -255,4 +256,20 @@ pub async fn topic(
         });
 
     HttpResponse::Ok().body(rendered)
+}
+
+fn format_date_fr(date: Option<String>) -> Option<String> {
+    let date = date?;
+
+    let naive = NaiveDateTime::parse_from_str(&date, "%Y-%m-%d %H:%M:%S").ok()?;
+
+    let utc = Utc.from_utc_datetime(&naive);
+
+    let paris = FixedOffset::east_opt(2 * 60 * 60)?;
+
+    Some(
+        utc.with_timezone(&paris)
+            .format("%Y-%m-%d %H:%M:%S")
+            .to_string(),
+    )
 }
