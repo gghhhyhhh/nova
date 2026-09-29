@@ -657,6 +657,7 @@ async fn main() -> std::io::Result<()> {
             .route("/register", web::post().to(auth::register))
             .route("/verify-code", web::get().to(auth::verify_code_page))
             .route("/verify-code", web::post().to(auth::verify_code))
+            .route("/resend-code", web::post().to(auth::resend_code))
             .route("/logout", web::get().to(auth::logout))
             .route(
                 "/forgot-password",

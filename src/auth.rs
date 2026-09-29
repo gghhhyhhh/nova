@@ -317,6 +317,104 @@ pub async fn verify_code_page(tera: web::Data<Tera>) -> impl Responder {
     render_template(&tera, "verify-code.html", Context::new())
 }
 
+pub async fn resend_code(
+    pool: web::Data<SqlitePool>,
+    tera: web::Data<Tera>,
+    session: Session,
+) -> impl Responder {
+    let pending_user_id = match session.get::<i64>("pending_user_id") {
+        Ok(Some(id)) => id,
+        _ => {
+            return redirect("/login");
+        }
+    };
+
+    let user = sqlx::query_as::<_, (String, String, i64)>(
+        "SELECT email, username, resend_count
+         FROM users
+         JOIN login_verification_codes
+           ON login_verification_codes.user_id = users.id
+         WHERE users.id = ?
+         ORDER BY login_verification_codes.id DESC
+         LIMIT 1",
+    )
+    .bind(pending_user_id)
+    .fetch_optional(pool.get_ref())
+    .await;
+
+    let Some((email, username, resend_count)) = (match user {
+        Ok(user) => user,
+        Err(e) => {
+            eprintln!("Erreur récupération utilisateur : {e}");
+
+            let mut context = Context::new();
+            context.insert("error", "Erreur interne du serveur.");
+            return render_template(&tera, "verify-code.html", context);
+        }
+    }) else {
+        return redirect("/login");
+    };
+
+    if resend_count >= 5 {
+        let mut context = Context::new();
+        context.insert("error", "Vous avez atteint la limite de 5 renvois de code.");
+        context.insert("resend_count", &resend_count);
+
+        return render_template(&tera, "verify-code.html", context);
+    }
+
+    let new_code = format!("{:06}", rand::thread_rng().gen_range(0..1_000_000));
+
+    let new_count = resend_count + 1;
+
+    if let Err(e) = sqlx::query(
+        "UPDATE login_verification_codes
+         SET code = ?,
+             expires_at = datetime('now', '+10 minutes'),
+             resend_count = ?
+         WHERE user_id = ?",
+    )
+    .bind(&new_code)
+    .bind(new_count)
+    .bind(pending_user_id)
+    .execute(pool.get_ref())
+    .await
+    {
+        eprintln!("Erreur création nouveau code : {e}");
+
+        let mut context = Context::new();
+        context.insert("error", "Impossible de générer un nouveau code.");
+        context.insert("resend_count", &resend_count);
+
+        return render_template(&tera, "verify-code.html", context);
+    }
+
+    let body = format!(
+        "Bonjour {},\n\n\
+         Voici votre nouveau code de vérification NOVA : {}\n\n\
+         Ce code est valable pendant 10 minutes.\n\n\
+         Renvois utilisés : {}/5.\n\n\
+         Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.",
+        username, new_code, new_count
+    );
+
+    if let Err(e) = send_email(&email, "Nouveau code de vérification NOVA", &body).await {
+        eprintln!("Erreur envoi nouveau code : {e}");
+
+        let mut context = Context::new();
+        context.insert("error", "Impossible d'envoyer le nouveau code.");
+        context.insert("resend_count", &resend_count);
+
+        return render_template(&tera, "verify-code.html", context);
+    }
+
+    let mut context = Context::new();
+    context.insert("success", "Un nouveau code vient de vous être envoyé.");
+    context.insert("resend_count", &new_count);
+
+    render_template(&tera, "verify-code.html", context)
+}
+
 pub async fn verify_code(
     pool: web::Data<SqlitePool>,
     tera: web::Data<Tera>,
