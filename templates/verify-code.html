@@ -3,47 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NOVA — Vérification</title>
-</head>
-<body>
-    <main>
-        <h1>Vérification de connexion</h1>
 
-        <p>Un code à 6 chiffres a été envoyé à votre adresse email.</p>
+    <title>NOVA — Vérification</title>
+
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+
+<body>
+
+<main class="auth-page">
+
+    <section class="auth-card">
+
+        <div class="auth-logo">
+            <h1>NOVA</h1>
+            <p>Sécurisation de votre compte</p>
+        </div>
+
+        <h2>Vérification</h2>
+
+        <p class="auth-description">
+            Un code à 6 chiffres a été envoyé à votre adresse email.
+        </p>
 
         {% if error %}
-            <p>{{ error }}</p>
+            <div class="auth-message error">
+                {{ error }}
+            </div>
         {% endif %}
 
         {% if success %}
-            <p>{{ success }}</p>
+            <div class="auth-message success">
+                {{ success }}
+            </div>
         {% endif %}
 
-        <form method="post" action="/verify-code">
-            <label>Code de vérification</label>
-            <input
-                type="text"
-                name="code"
-                inputmode="numeric"
-                maxlength="6"
-                minlength="6"
-                required
+        <form class="auth-form" method="post" action="/verify-code">
+
+            <div class="auth-field">
+
+                <label for="code">
+                    Code de vérification
+                </label>
+
+                <input
+                    id="code"
+                    class="code-input"
+                    type="text"
+                    name="code"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    maxlength="6"
+                    minlength="6"
+                    placeholder="000000"
+                    required
+                >
+
+            </div>
+
+            <button class="auth-button" type="submit">
+                Vérifier le code
+            </button>
+
+        </form>
+
+        {% set current_resend_count = resend_count | default(value=0) %}
+
+        <p class="resend-info">
+            Renvois utilisés : {{ current_resend_count }}/5
+        </p>
+
+        {% if current_resend_count < 5 %}
+
+            <form
+                class="resend-form"
+                method="post"
+                action="/resend-code"
             >
 
-            <button type="submit">Vérifier</button>
-        </form>
+                <button
+                    class="auth-button secondary"
+                    type="submit"
+                >
+                    Renvoyer le code
+                </button>
 
-        <form method="post" action="/resend-code">
-            <button type="submit">
-                Renvoyer le code
+            </form>
+
+        {% else %}
+
+            <button
+                class="auth-button secondary"
+                type="button"
+                disabled
+            >
+                Limite de 5 renvois atteinte
             </button>
-        </form>
 
-        {% if resend_count is defined %}
-            <p>Renvois utilisés : {{ resend_count }}/5</p>
         {% endif %}
 
-        <p><a href="/login">Retour à la connexion</a></p>
-    </main>
+        <div class="auth-links">
+
+            <a href="/login">
+                Retour à la connexion
+            </a>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script src="/static/js/auth.js"></script>
+
 </body>
 </html>

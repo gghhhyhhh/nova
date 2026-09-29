@@ -3,29 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>NOVA — Connexion</title>
+
+    <link rel="stylesheet" href="/static/css/auth.css">
 </head>
+
 <body>
-    <main>
-        <h1>Connexion à NOVA</h1>
+
+<main class="auth-page">
+
+    <section class="auth-card">
+
+        <div class="auth-logo">
+            <h1>NOVA</h1>
+            <p>Votre espace personnel</p>
+        </div>
+
+        <h2>Connexion</h2>
+
+        <p class="auth-description">
+            Connectez-vous à votre compte NOVA.
+        </p>
 
         {% if error %}
-            <p>{{ error }}</p>
+            <div class="auth-message error">
+                {{ error }}
+            </div>
         {% endif %}
 
-        <form method="post" action="/login">
-            <label>Email</label>
-            <input type="email" name="email" required>
+        <form class="auth-form" method="post" action="/login">
 
-            <label>Mot de passe</label>
-            <input type="password" name="password" required>
+            <div class="auth-field">
+                <label for="email">Email</label>
 
-            <button type="submit">Se connecter</button>
+                <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    placeholder="votre@email.com"
+                    autocomplete="email"
+                    required
+                >
+            </div>
+
+            <div class="auth-field">
+                <label for="password">Mot de passe</label>
+
+                <div class="password-wrapper">
+
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="Votre mot de passe"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-target="password"
+                    >
+                        Afficher
+                    </button>
+
+                </div>
+            </div>
+
+            <button class="auth-button" type="submit">
+                Se connecter
+            </button>
+
         </form>
 
-        <p><a href="/forgot-password">Mot de passe oublié ?</a></p>
-        <p><a href="/register">Créer un compte</a></p>
-        <p><a href="/">Retour à NOVA</a></p>
-    </main>
+        <div class="auth-links">
+
+            <a href="/forgot-password">
+                Mot de passe oublié ?
+            </a>
+
+            <a href="/register">
+                Créer un compte
+            </a>
+
+        </div>
+
+        <div class="auth-footer">
+            NOVA
+        </div>
+
+    </section>
+
+</main>
+
+<script src="/static/js/auth.js"></script>
+
 </body>
 </html>

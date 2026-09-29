@@ -3,30 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>NOVA — Inscription</title>
+
+    <link rel="stylesheet" href="/static/css/auth.css">
 </head>
+
 <body>
-    <main>
-        <h1>Créer un compte NOVA</h1>
+
+<main class="auth-page">
+
+    <section class="auth-card">
+
+        <div class="auth-logo">
+            <h1>NOVA</h1>
+            <p>Rejoignez NOVA</p>
+        </div>
+
+        <h2>Créer un compte</h2>
+
+        <p class="auth-description">
+            Créez votre compte NOVA pour accéder à votre espace.
+        </p>
 
         {% if error %}
-            <p>{{ error }}</p>
+            <div class="auth-message error">
+                {{ error }}
+            </div>
         {% endif %}
 
-        <form method="post" action="/register">
-            <label>Nom d'utilisateur</label>
-            <input type="text" name="username" required minlength="3">
+        <form class="auth-form" method="post" action="/register">
 
-            <label>Email</label>
-            <input type="email" name="email" required>
+            <div class="auth-field">
+                <label for="username">Nom d'utilisateur</label>
 
-            <label>Mot de passe</label>
-            <input type="password" name="password" required minlength="8">
+                <input
+                    id="username"
+                    type="text"
+                    name="username"
+                    placeholder="Votre nom d'utilisateur"
+                    autocomplete="username"
+                    minlength="3"
+                    required
+                >
+            </div>
 
-            <button type="submit">Créer mon compte</button>
+            <div class="auth-field">
+                <label for="email">Email</label>
+
+                <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    placeholder="votre@email.com"
+                    autocomplete="email"
+                    required
+                >
+            </div>
+
+            <div class="auth-field">
+                <label for="password">Mot de passe</label>
+
+                <div class="password-wrapper">
+
+                    <input
+                        id="password"
+                        type="password"
+                        name="password"
+                        placeholder="Minimum 8 caractères"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-target="password"
+                    >
+                        Afficher
+                    </button>
+
+                </div>
+            </div>
+
+            <button class="auth-button" type="submit">
+                Créer mon compte
+            </button>
+
         </form>
 
-        <p><a href="/login">Déjà un compte ? Se connecter</a></p>
-    </main>
+        <div class="auth-links">
+
+            <a href="/login">
+                Déjà un compte ? Se connecter
+            </a>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script src="/static/js/auth.js"></script>
+
 </body>
 </html>

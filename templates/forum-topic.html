@@ -9,9 +9,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        NOVA - {{ topic.title }}
-    </title>
+    <title>NOVA - {{ topic.title }}</title>
 
     <link
         rel="stylesheet"
@@ -21,11 +19,16 @@
 
 <body>
 
-    <main class="networks-page">
+    <main class="topic-page">
 
-        <section class="forum-header">
+        <!-- RETOUR -->
+        <header class="topic-topbar">
 
-            <div>
+            <a href="/reseaux" class="topic-back">
+                ←
+            </a>
+
+            <div class="topic-heading">
 
                 <h1>
                     {{ topic.title }}
@@ -33,35 +36,77 @@
 
                 {% if topic.created_at %}
 
-                    <p>
+                    <span>
                         {{ topic.created_at }}
-                    </p>
+                    </span>
 
                 {% endif %}
 
             </div>
 
-        </section>
+        </header>
 
-        <section class="forum-categories">
+
+        <!-- FIL DU SUJET -->
+        <section class="topic-feed">
 
             {% for post in posts %}
 
-                <article class="forum-category">
+                <article class="topic-post">
 
-                    <div>
+                    <div class="post-avatar">
+                        
+                    </div>
 
-                        <p>
+                    <div class="post-body">
+
+                        <div class="post-meta">
+
+                            <strong>
+                                {{ post.username }}
+                            </strong>
+
+                            <span>·</span>
+
+                            {% if post.created_at %}
+
+                                <time>
+                                    {{ post.created_at }}
+                                </time>
+
+                            {% endif %}
+
+                        </div>
+
+                        <p class="post-content">
                             {{ post.content }}
                         </p>
 
-                        {% if post.created_at %}
 
-                            <small>
-                                {{ post.created_at }}
-                            </small>
+                        <div class="post-actions">
 
-                        {% endif %}
+                            <span class="post-action">
+                                💬
+                            </span>
+
+                            <form
+                                action="/reseaux/post/{{ post.id }}/like"
+                                method="post"
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="like-button"
+                                >
+                                    ♡
+                                    <span>
+                                        {{ post.likes }}
+                                    </span>
+                                </button>
+
+                            </form>
+
+                        </div>
 
                     </div>
 
@@ -69,13 +114,49 @@
 
             {% endfor %}
 
-        </section>
 
-        <section class="forum-categories">
+            <!-- RÉPONSE -->
+            <article class="topic-post reply-post">
 
-            <a href="/reseaux">
-                ← Retour aux sujets
-            </a>
+                <div class="post-avatar">
+                    +
+                </div>
+
+                <div class="post-body">
+
+                    <div class="post-meta">
+
+                        <strong>
+                            Votre réponse
+                        </strong>
+
+                    </div>
+
+                    <form
+                        action="/reseaux/{{ topic.id }}/comment"
+                        method="post"
+                        class="reply-form"
+                    >
+
+                        <textarea
+                            name="content"
+                            placeholder="Écrire une réponse..."
+                            required
+                        ></textarea>
+
+                        <div class="reply-footer">
+
+                            <button type="submit">
+                                Publier
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </article>
 
         </section>
 

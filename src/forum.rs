@@ -1,4 +1,5 @@
 use actix_web::{web, HttpResponse, Responder};
+use actix_session::Session;
 use chrono::{FixedOffset, NaiveDateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
@@ -8,6 +9,7 @@ use tera::{Context, Tera};
 pub struct ForumTopic {
     pub id: i64,
     pub title: String,
+    pub username: String,
     pub created_at: Option<String>,
 }
 
@@ -15,12 +17,19 @@ pub struct ForumTopic {
 pub struct ForumPost {
     pub id: i64,
     pub content: String,
+    pub username: String,
     pub created_at: Option<String>,
+    pub likes: i64,
 }
 
 #[derive(Deserialize)]
 pub struct CreateTopicForm {
     pub title: String,
+    pub content: String,
+}
+
+#[derive(Deserialize)]
+pub struct CreateCommentForm {
     pub content: String,
 }
 
@@ -80,19 +89,24 @@ pub async fn init(pool: &SqlitePool) {
 }
 
 pub async fn index(pool: web::Data<SqlitePool>, tera: web::Data<Tera>) -> impl Responder {
-    let topics = match sqlx::query_as::<_, (i64, String, Option<String>)>(
-        "SELECT id, title, created_at
+    let topics = match sqlx::query_as::<_, (i64, String, String, Option<String>)>(
+        "SELECT forum_topics.id,
+                forum_topics.title,
+                users.username,
+                forum_topics.created_at
          FROM forum_topics
-         ORDER BY created_at DESC",
+         LEFT JOIN users ON users.id = forum_topics.user_id
+         ORDER BY forum_topics.created_at DESC",
     )
     .fetch_all(pool.get_ref())
     .await
     {
         Ok(rows) => rows
             .into_iter()
-            .map(|(id, title, created_at)| ForumTopic {
+            .map(|(id, title, username, created_at)| ForumTopic {
                 id,
                 title,
+                username,
                 created_at: format_date_fr(created_at),
             })
             .collect::<Vec<ForumTopic>>(),
@@ -186,6 +200,110 @@ pub async fn create_topic(
         .finish()
 }
 
+pub async fn add_comment(
+    pool: web::Data<SqlitePool>,
+    topic_id: web::Path<i64>,
+    session: Session,
+    form: web::Form<CreateCommentForm>,
+) -> impl Responder {
+    let user_id = match session.get::<i64>("user_id") {
+        Ok(Some(id)) => id,
+        _ => {
+            return HttpResponse::Unauthorized()
+                .body("Vous devez être connecté pour commenter.");
+        }
+    };
+
+    let topic_id = topic_id.into_inner();
+    let content = form.content.trim();
+
+    if content.is_empty() {
+        return HttpResponse::BadRequest()
+            .body("Le commentaire est obligatoire.");
+    }
+
+    let result = sqlx::query(
+        "INSERT INTO forum_posts (topic_id, user_id, content)
+         VALUES (?, ?, ?)",
+    )
+    .bind(topic_id)
+    .bind(user_id)
+    .bind(content)
+    .execute(pool.get_ref())
+    .await;
+
+    match result {
+        Ok(_) => HttpResponse::Found()
+            .append_header(("Location", format!("/reseaux/{}", topic_id)))
+            .finish(),
+
+        Err(e) => {
+            eprintln!("Erreur création commentaire : {e}");
+            HttpResponse::InternalServerError()
+                .body("Impossible de créer le commentaire")
+        }
+    }
+}
+
+pub async fn like_post(
+    pool: web::Data<SqlitePool>,
+    post_id: web::Path<i64>,
+    session: Session,
+) -> impl Responder {
+    let user_id = match session.get::<i64>("user_id") {
+        Ok(Some(id)) => id,
+        _ => {
+            return HttpResponse::Unauthorized()
+                .body("Vous devez être connecté pour liker.");
+        }
+    };
+
+    let post_id = post_id.into_inner();
+
+let topic_id = match sqlx::query_as::<_, (i64,)>(
+    "SELECT topic_id
+     FROM forum_posts
+     WHERE id = ?",
+)
+.bind(post_id)
+.fetch_optional(pool.get_ref())
+.await
+{
+    Ok(Some((topic_id,))) => topic_id,
+
+    Ok(None) => {
+        return HttpResponse::NotFound().body("Message introuvable.");
+    }
+
+    Err(e) => {
+        eprintln!("Erreur récupération du sujet : {e}");
+        return HttpResponse::InternalServerError()
+            .body("Erreur interne du serveur");
+    }
+};
+
+let result = sqlx::query(
+    "INSERT OR IGNORE INTO forum_post_likes (post_id, user_id)
+     VALUES (?, ?)",
+)
+    .bind(post_id)
+    .bind(user_id)
+    .execute(pool.get_ref())
+    .await;
+
+    match result {
+        Ok(_) => HttpResponse::Found()
+    .append_header(("Location", format!("/reseaux/{}", topic_id)))
+    .finish(),
+
+        Err(e) => {
+            eprintln!("Erreur ajout like : {e}");
+            HttpResponse::InternalServerError()
+                .body("Impossible d'ajouter le like")
+        }
+    }
+}
+
 pub async fn topic(
     pool: web::Data<SqlitePool>,
     tera: web::Data<Tera>,
@@ -193,48 +311,63 @@ pub async fn topic(
 ) -> impl Responder {
     let topic_id = topic_id.into_inner();
 
-    let topic = match sqlx::query_as::<_, (i64, String, Option<String>)>(
-        "SELECT id, title, created_at
-         FROM forum_topics
-         WHERE id = ?",
-    )
+    let topic = match sqlx::query_as::<_, (i64, String, String, Option<String>)>(
+    "SELECT forum_topics.id,
+            forum_topics.title,
+            users.username,
+            forum_topics.created_at
+     FROM forum_topics
+     LEFT JOIN users ON users.id = forum_topics.user_id
+     WHERE forum_topics.id = ?",
+)
     .bind(topic_id)
     .fetch_optional(pool.get_ref())
     .await
     {
-        Ok(Some((id, title, created_at))) => ForumTopic {
-            id,
-            title,
-            created_at: format_date_fr(created_at),
-        },
+        Ok(Some((id, title, username, created_at))) => ForumTopic {
+    id,
+    title,
+    username,
+    created_at: format_date_fr(created_at),
+},
 
         Ok(None) => {
-            return HttpResponse::NotFound().body("Sujet introuvable");
-        }
+    return HttpResponse::NotFound().body("Message introuvable.");
+}
 
-        Err(e) => {
-            eprintln!("Erreur récupération sujet : {e}");
-            return HttpResponse::InternalServerError().body("Erreur interne du serveur");
-        }
+Err(e) => {
+    eprintln!("Erreur récupération du sujet : {e}");
+    return HttpResponse::InternalServerError()
+        .body("Erreur interne du serveur");
+}
     };
 
-    let posts = match sqlx::query_as::<_, (i64, String, Option<String>)>(
-        "SELECT id, content, created_at
-         FROM forum_posts
-         WHERE topic_id = ?
-         ORDER BY created_at ASC",
-    )
+    let posts = match sqlx::query_as::<_, (i64, String, String, Option<String>, i64)>(
+    "SELECT forum_posts.id,
+            forum_posts.content,
+            users.username,
+            forum_posts.created_at,
+            COUNT(forum_post_likes.id)
+     FROM forum_posts
+     LEFT JOIN users ON users.id = forum_posts.user_id
+     LEFT JOIN forum_post_likes ON forum_post_likes.post_id = forum_posts.id
+     WHERE forum_posts.topic_id = ?
+     GROUP BY forum_posts.id
+     ORDER BY forum_posts.created_at ASC",
+)
     .bind(topic_id)
     .fetch_all(pool.get_ref())
     .await
     {
         Ok(rows) => rows
             .into_iter()
-            .map(|(id, content, created_at)| ForumPost {
-                id,
-                content,
-                created_at,
-            })
+            .map(|(id, content, username, created_at, likes)| ForumPost {
+    id,
+    content,
+    username,
+    created_at,
+    likes,
+})
             .collect::<Vec<ForumPost>>(),
 
         Err(e) => {
