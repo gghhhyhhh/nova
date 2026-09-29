@@ -110,6 +110,16 @@ async fn index(
     session: Session,
     query: web::Query<IndexQuery>,
 ) -> impl Responder {
+    match session.get::<i64>("user_id") {
+        Ok(Some(_)) => {}
+
+        _ => {
+            return HttpResponse::Found()
+                .append_header(("Location", "/login"))
+                .finish();
+        }
+    }
+
     let _ = get_or_create_session_id(&session);
 
     let mut ctx = Context::new();

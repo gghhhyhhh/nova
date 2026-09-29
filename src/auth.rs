@@ -180,52 +180,10 @@ pub async fn register(
         }
     };
 
-    let code = format!("{:06}", rand::thread_rng().gen_range(0..1_000_000));
+   let _ = session.insert("user_id", user_id);
+session.remove("pending_user_id");
 
-    if let Err(e) = sqlx::query(
-        "DELETE FROM login_verification_codes
-         WHERE user_id = ?",
-    )
-    .bind(user_id)
-    .execute(pool.get_ref())
-    .await
-    {
-        eprintln!("Erreur suppression ancien code : {e}");
-    }
-
-    if let Err(e) = sqlx::query(
-        "INSERT INTO login_verification_codes
-         (user_id, code, expires_at)
-         VALUES (?, ?, datetime('now', '+10 minutes'))",
-    )
-    .bind(user_id)
-    .bind(&code)
-    .execute(pool.get_ref())
-    .await
-    {
-        eprintln!("Erreur création code : {e}");
-        context.insert("error", "Impossible de générer le code de vérification.");
-        return render_template(&tera, "register.html", context);
-    }
-
-    let body = format!(
-        "Bonjour {},\n\n\
-         Bienvenue sur NOVA.\n\n\
-         Votre code de vérification est : {}\n\n\
-         Ce code est valable pendant 10 minutes.\n\n\
-         Si vous n'êtes pas à l'origine de cette inscription, ignorez cet email.",
-        username, code
-    );
-
-    if let Err(e) = send_email(&email, "Votre code de vérification NOVA", &body).await {
-        eprintln!("Erreur envoi code : {e}");
-        context.insert("error", "Impossible d'envoyer le code de vérification.");
-        return render_template(&tera, "register.html", context);
-    }
-
-    let _ = session.insert("pending_user_id", user_id);
-
-    redirect("/verify-code")
+redirect("/")
 }
 
 pub async fn login(
@@ -245,9 +203,10 @@ pub async fn login(
     .fetch_optional(pool.get_ref())
     .await;
 
-    let Some((user_id, username, password_hash)) = (match user {
+    let Some((user_id, _username, password_hash)) = (match user {
         Ok(user) => user,
-        Err(_) => {
+        Err(e) => {
+            eprintln!("Erreur récupération utilisateur : {e}");
             return HttpResponse::InternalServerError().body("Erreur serveur");
         }
     }) else {
@@ -262,55 +221,10 @@ pub async fn login(
         return render_template(&tera, "login.html", context);
     }
 
-    let code = format!("{:06}", rand::thread_rng().gen_range(0..1_000_000));
+    let _ = session.insert("user_id", user_id);
+    session.remove("pending_user_id");
 
-    if let Err(e) = sqlx::query(
-        "DELETE FROM login_verification_codes
-         WHERE user_id = ?",
-    )
-    .bind(user_id)
-    .execute(pool.get_ref())
-    .await
-    {
-        eprintln!("Erreur suppression ancien code : {e}");
-    }
-
-    if let Err(e) = sqlx::query(
-        "INSERT INTO login_verification_codes
-         (user_id, code, expires_at)
-         VALUES (?, ?, datetime('now', '+10 minutes'))",
-    )
-    .bind(user_id)
-    .bind(&code)
-    .execute(pool.get_ref())
-    .await
-    {
-        eprintln!("Erreur création code : {e}");
-
-        let mut context = Context::new();
-        context.insert("error", "Impossible de générer le code de connexion.");
-        return render_template(&tera, "login.html", context);
-    }
-
-    let body = format!(
-        "Bonjour {},\n\n\
-         Votre code de connexion NOVA est : {}\n\n\
-         Ce code est valable pendant 10 minutes.\n\n\
-         Si vous n'êtes pas à l'origine de cette connexion, ignorez cet email.",
-        username, code
-    );
-
-    if let Err(e) = send_email(&email, "Votre code de connexion NOVA", &body).await {
-        eprintln!("Erreur envoi code : {e}");
-
-        let mut context = Context::new();
-        context.insert("error", "Impossible d'envoyer le code de vérification.");
-        return render_template(&tera, "login.html", context);
-    }
-
-    let _ = session.insert("pending_user_id", user_id);
-
-    redirect("/verify-code")
+    redirect("/")
 }
 
 pub async fn verify_code_page(tera: web::Data<Tera>) -> impl Responder {
