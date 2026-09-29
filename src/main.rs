@@ -13,6 +13,7 @@ use std::sync::Mutex;
 use tera::{Context, Tera};
 use uuid::Uuid;
 
+mod auth;
 mod forum;
 
 #[derive(Deserialize)]
@@ -578,6 +579,54 @@ async fn main() -> std::io::Result<()> {
         eprintln!("⚠️ Erreur création table project_members: {e}");
     }
 
+    if let Err(e) = sqlx::query(
+        "CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )",
+    )
+    .execute(&pool)
+    .await
+    {
+        eprintln!("⚠️ Erreur création table users: {e}");
+    }
+
+    if let Err(e) = sqlx::query(
+        "CREATE TABLE IF NOT EXISTS login_verification_codes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            code TEXT NOT NULL,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )",
+    )
+    .execute(&pool)
+    .await
+    {
+        eprintln!("⚠️ Erreur création table login_verification_codes: {e}");
+    }
+
+    if let Err(e) = sqlx::query(
+        "CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT NOT NULL UNIQUE,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )",
+    )
+    .execute(&pool)
+    .await
+    {
+        eprintln!("⚠️ Erreur création table password_reset_tokens: {e}");
+    }
+
     forum::init(&pool).await;
 
     let tfidf_engine = load_tfidf_engine(&pool).await;
@@ -601,6 +650,26 @@ async fn main() -> std::io::Result<()> {
                         PersistentSession::default().session_ttl(CookieDuration::days(30)),
                     )
                     .build(),
+            )
+            .route("/login", web::get().to(auth::login_page))
+            .route("/login", web::post().to(auth::login))
+            .route("/register", web::get().to(auth::register_page))
+            .route("/register", web::post().to(auth::register))
+            .route("/verify-code", web::get().to(auth::verify_code_page))
+            .route("/verify-code", web::post().to(auth::verify_code))
+            .route("/logout", web::get().to(auth::logout))
+            .route(
+                "/forgot-password",
+                web::get().to(auth::forgot_password_page),
+            )
+            .route("/forgot-password", web::post().to(auth::forgot_password))
+            .route(
+                "/reset-password/{token}",
+                web::get().to(auth::reset_password_page),
+            )
+            .route(
+                "/reset-password/{token}",
+                web::post().to(auth::reset_password),
             )
             .route("/", web::get().to(index))
             .route("/reseaux", web::get().to(forum::index))
