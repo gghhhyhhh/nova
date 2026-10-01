@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-actix-web = "4"
+actix-web = { version = "4", features = ["rustls-0_23"] }
 actix-files = "0.6"
 tera = "1"
 serde = { version = "1", features = ["derive"] }
@@ -23,3 +23,5 @@ argon2 = "0.5"
 lettre = { version = "0.11", default-features = false, features = ["builder", "smtp-transport", "tokio1", "tokio1-rustls-tls"] }
 rand = "0.8"
 chrono = "0.4"
+rustls = "0.23.45"
+rustls-pemfile = "2.2.0"

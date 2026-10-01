@@ -180,10 +180,10 @@ pub async fn register(
         }
     };
 
-   let _ = session.insert("user_id", user_id);
-session.remove("pending_user_id");
+    let _ = session.insert("user_id", user_id);
+    session.remove("pending_user_id");
 
-redirect("/")
+    redirect("/")
 }
 
 pub async fn login(

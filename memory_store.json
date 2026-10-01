@@ -1,0 +1,20 @@
+{
+  "conversations": [
+    {
+      "role": "user",
+      "content": "Bonjour, présente-toi en une phrase.",
+      "timestamp": 1790871162.4540055
+    },
+    {
+      "role": "user",
+      "content": "Bonjour, présente-toi en une phrase.",
+      "timestamp": 1790871334.5534837
+    },
+    {
+      "role": "assistant",
+      "content": "Bonjour ! Je suis un assistant IA nommé Llama, conçu pour fournir des réponses utiles et pertinentes à vos questions et demandes.",
+      "timestamp": 1790871346.64028
+    }
+  ],
+  "facts": []
+}

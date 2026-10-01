@@ -1,5 +1,5 @@
-use actix_web::{web, HttpResponse, Responder};
 use actix_session::Session;
+use actix_web::{web, HttpResponse, Responder};
 use chrono::{FixedOffset, NaiveDateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
@@ -209,8 +209,7 @@ pub async fn add_comment(
     let user_id = match session.get::<i64>("user_id") {
         Ok(Some(id)) => id,
         _ => {
-            return HttpResponse::Unauthorized()
-                .body("Vous devez être connecté pour commenter.");
+            return HttpResponse::Unauthorized().body("Vous devez être connecté pour commenter.");
         }
     };
 
@@ -218,8 +217,7 @@ pub async fn add_comment(
     let content = form.content.trim();
 
     if content.is_empty() {
-        return HttpResponse::BadRequest()
-            .body("Le commentaire est obligatoire.");
+        return HttpResponse::BadRequest().body("Le commentaire est obligatoire.");
     }
 
     let result = sqlx::query(
@@ -239,8 +237,7 @@ pub async fn add_comment(
 
         Err(e) => {
             eprintln!("Erreur création commentaire : {e}");
-            HttpResponse::InternalServerError()
-                .body("Impossible de créer le commentaire")
+            HttpResponse::InternalServerError().body("Impossible de créer le commentaire")
         }
     }
 }
@@ -253,39 +250,37 @@ pub async fn like_post(
     let user_id = match session.get::<i64>("user_id") {
         Ok(Some(id)) => id,
         _ => {
-            return HttpResponse::Unauthorized()
-                .body("Vous devez être connecté pour liker.");
+            return HttpResponse::Unauthorized().body("Vous devez être connecté pour liker.");
         }
     };
 
     let post_id = post_id.into_inner();
 
-let topic_id = match sqlx::query_as::<_, (i64,)>(
-    "SELECT topic_id
+    let topic_id = match sqlx::query_as::<_, (i64,)>(
+        "SELECT topic_id
      FROM forum_posts
      WHERE id = ?",
-)
-.bind(post_id)
-.fetch_optional(pool.get_ref())
-.await
-{
-    Ok(Some((topic_id,))) => topic_id,
+    )
+    .bind(post_id)
+    .fetch_optional(pool.get_ref())
+    .await
+    {
+        Ok(Some((topic_id,))) => topic_id,
 
-    Ok(None) => {
-        return HttpResponse::NotFound().body("Message introuvable.");
-    }
+        Ok(None) => {
+            return HttpResponse::NotFound().body("Message introuvable.");
+        }
 
-    Err(e) => {
-        eprintln!("Erreur récupération du sujet : {e}");
-        return HttpResponse::InternalServerError()
-            .body("Erreur interne du serveur");
-    }
-};
+        Err(e) => {
+            eprintln!("Erreur récupération du sujet : {e}");
+            return HttpResponse::InternalServerError().body("Erreur interne du serveur");
+        }
+    };
 
-let result = sqlx::query(
-    "INSERT OR IGNORE INTO forum_post_likes (post_id, user_id)
+    let result = sqlx::query(
+        "INSERT OR IGNORE INTO forum_post_likes (post_id, user_id)
      VALUES (?, ?)",
-)
+    )
     .bind(post_id)
     .bind(user_id)
     .execute(pool.get_ref())
@@ -293,13 +288,12 @@ let result = sqlx::query(
 
     match result {
         Ok(_) => HttpResponse::Found()
-    .append_header(("Location", format!("/reseaux/{}", topic_id)))
-    .finish(),
+            .append_header(("Location", format!("/reseaux/{}", topic_id)))
+            .finish(),
 
         Err(e) => {
             eprintln!("Erreur ajout like : {e}");
-            HttpResponse::InternalServerError()
-                .body("Impossible d'ajouter le like")
+            HttpResponse::InternalServerError().body("Impossible d'ajouter le like")
         }
     }
 }
@@ -312,38 +306,37 @@ pub async fn topic(
     let topic_id = topic_id.into_inner();
 
     let topic = match sqlx::query_as::<_, (i64, String, String, Option<String>)>(
-    "SELECT forum_topics.id,
+        "SELECT forum_topics.id,
             forum_topics.title,
             users.username,
             forum_topics.created_at
      FROM forum_topics
      LEFT JOIN users ON users.id = forum_topics.user_id
      WHERE forum_topics.id = ?",
-)
+    )
     .bind(topic_id)
     .fetch_optional(pool.get_ref())
     .await
     {
         Ok(Some((id, title, username, created_at))) => ForumTopic {
-    id,
-    title,
-    username,
-    created_at: format_date_fr(created_at),
-},
+            id,
+            title,
+            username,
+            created_at: format_date_fr(created_at),
+        },
 
         Ok(None) => {
-    return HttpResponse::NotFound().body("Message introuvable.");
-}
+            return HttpResponse::NotFound().body("Message introuvable.");
+        }
 
-Err(e) => {
-    eprintln!("Erreur récupération du sujet : {e}");
-    return HttpResponse::InternalServerError()
-        .body("Erreur interne du serveur");
-}
+        Err(e) => {
+            eprintln!("Erreur récupération du sujet : {e}");
+            return HttpResponse::InternalServerError().body("Erreur interne du serveur");
+        }
     };
 
     let posts = match sqlx::query_as::<_, (i64, String, String, Option<String>, i64)>(
-    "SELECT forum_posts.id,
+        "SELECT forum_posts.id,
             forum_posts.content,
             users.username,
             forum_posts.created_at,
@@ -354,7 +347,7 @@ Err(e) => {
      WHERE forum_posts.topic_id = ?
      GROUP BY forum_posts.id
      ORDER BY forum_posts.created_at ASC",
-)
+    )
     .bind(topic_id)
     .fetch_all(pool.get_ref())
     .await
@@ -362,12 +355,12 @@ Err(e) => {
         Ok(rows) => rows
             .into_iter()
             .map(|(id, content, username, created_at, likes)| ForumPost {
-    id,
-    content,
-    username,
-    created_at,
-    likes,
-})
+                id,
+                content,
+                username,
+                created_at,
+                likes,
+            })
             .collect::<Vec<ForumPost>>(),
 
         Err(e) => {

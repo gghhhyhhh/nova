@@ -201,16 +201,65 @@
     </div>
 
     <div class="ia-overlay" id="iaOverlay">
-        <div class="ia-panel">
-            <div class="ia-panel-header">
-                <span>🤖 Assistant IA locale</span>
-                <button class="ia-panel-close" id="iaPanelClose">✕</button>
+    <div class="ia-panel">
+
+        <div class="ia-panel-header">
+            <div class="ia-title">
+                <span class="ia-logo">✦</span>
+                <div>
+                    <strong>Assistant IA</strong>
+                    <small>NOVA • IA locale</small>
+                </div>
             </div>
-            <div id="iaPanelBody">
-                <iframe id="iaIframe" src="" title="Assistant IA locale"></iframe>
-            </div>
+
+            <button
+                class="ia-panel-close"
+                id="iaPanelClose"
+                type="button"
+            >
+                ✕
+            </button>
         </div>
+
+        <div class="ia-chat" id="iaPanelBody">
+
+            <div class="ia-welcome">
+                <div class="ia-welcome-logo">✦</div>
+
+                <h2>Bonjour 👋</h2>
+
+                <p>
+                    Je suis l'assistant IA de NOVA.
+                    Pose-moi une question pour commencer.
+                </p>
+            </div>
+
+            <div class="ia-messages" id="iaMessages"></div>
+
+        </div>
+
+        <form class="ia-input-area" id="iaChatForm">
+
+            <textarea
+                id="iaMessage"
+                name="message"
+                rows="1"
+                placeholder="Écrire un message..."
+                autocomplete="off"
+            ></textarea>
+
+            <button
+                type="submit"
+                id="iaSend"
+                title="Envoyer"
+            >
+                ➤
+            </button>
+
+        </form>
+
     </div>
+</div>
 
     <div class="settings-panel" id="settingsPanel">
         <h3>⚙️ Paramètres</h3>

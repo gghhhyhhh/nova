@@ -6,9 +6,14 @@ use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use nova::search_engine::{SearchCategory, SearchResult};
 use nova::workspace::{self, CreateProjectPayload, MAX_MEMBERS_PER_PROJECT, MAX_PROJECTS_PER_DAY};
 use nova::{DbConfig, SearchEngine, TfIdfEngine};
+use rustls::crypto::aws_lc_rs;
+use rustls::ServerConfig;
+use rustls_pemfile::{certs, private_key};
 use serde::Deserialize;
 use sqlx::sqlite::SqlitePool;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::BufReader;
 use std::sync::Mutex;
 use tera::{Context, Tera};
 use uuid::Uuid;
@@ -489,56 +494,77 @@ async fn join_via_link(
         .finish()
 }
 
-/// Lance `docker-compose up -d` dans ~/ia-locale, en arrière-plan (ne bloque pas
-/// le démarrage du serveur si Docker est lent ou absent).
-fn start_ia_locale_background() {
-    std::thread::spawn(|| {
-        let Ok(home) = std::env::var("HOME") else {
-            eprintln!("⚠️  Variable HOME introuvable, IA locale non démarrée automatiquement.");
-            return;
-        };
-        let ia_dir = format!("{home}/ia-locale");
+#[derive(Deserialize)]
+struct IaChatRequest {
+    message: String,
+}
 
-        if !std::path::Path::new(&ia_dir)
-            .join("docker-compose.yml")
-            .exists()
-        {
-            eprintln!("ℹ️  ~/ia-locale non trouvé (ou incomplet) — assistant IA non démarré automatiquement.");
-            return;
+async fn api_ia_chat(session: Session, form: web::Json<IaChatRequest>) -> impl Responder {
+    // L'IA est accessible uniquement aux utilisateurs connectés.
+    match session.get::<i64>("user_id") {
+        Ok(Some(_)) => {}
+        _ => {
+            return HttpResponse::Unauthorized().json(serde_json::json!({
+                "ok": false,
+                "error": "Vous devez être connecté."
+            }));
         }
+    }
 
-        println!("🤖 Démarrage de l'assistant IA locale (docker-compose up -d)...");
+    let message = form.message.trim();
 
-        // On essaie d'abord `docker-compose` (ancien binaire), puis `docker compose` (plugin récent)
-        let result = std::process::Command::new("docker-compose")
-            .args(["up", "-d"])
-            .current_dir(&ia_dir)
-            .status();
+    if message.is_empty() {
+        return HttpResponse::BadRequest().json(serde_json::json!({
+            "ok": false,
+            "error": "Le message est obligatoire."
+        }));
+    }
 
-        let success = match result {
-            Ok(status) if status.success() => true,
-            _ => std::process::Command::new("docker")
-                .args(["compose", "up", "-d"])
-                .current_dir(&ia_dir)
-                .status()
-                .map(|s| s.success())
-                .unwrap_or(false),
-        };
+    let client = reqwest::Client::new();
 
-        if success {
-            let _ = std::process::Command::new("bash")
-                .arg(format!("{home}/nova/ia_nova/set-default-model.sh"))
-                .status();
-            println!("✅ Assistant IA locale démarré (http://localhost:3010).");
-        } else {
-            eprintln!("⚠️  Impossible de démarrer l'IA locale automatiquement (Docker absent ou erreur). Le bouton 🤖 IA affichera un message d'indisponibilité.");
+    let response = match client
+        .post("http://127.0.0.1:3020/chat")
+        .json(&serde_json::json!({
+            "message": message
+        }))
+        .send()
+        .await
+    {
+        Ok(response) => response,
+        Err(e) => {
+            eprintln!("Erreur connexion ia_nova : {e}");
+
+            return HttpResponse::ServiceUnavailable().json(serde_json::json!({
+                "ok": false,
+                "error": "L'assistant IA est indisponible."
+            }));
         }
-    });
+    };
+
+    let status = response.status();
+
+    let data = match response.json::<serde_json::Value>().await {
+        Ok(data) => data,
+        Err(e) => {
+            eprintln!("Erreur lecture réponse ia_nova : {e}");
+
+            return HttpResponse::BadGateway().json(serde_json::json!({
+                "ok": false,
+                "error": "Réponse invalide de l'assistant IA."
+            }));
+        }
+    };
+
+    if !status.is_success() {
+        return HttpResponse::BadGateway().json(data);
+    }
+
+    HttpResponse::Ok().json(data)
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    start_ia_locale_background();
+    start_ia_nova();
 
     let tera = match Tera::new("templates/**/*.html") {
         Ok(t) => t,
@@ -637,6 +663,23 @@ async fn main() -> std::io::Result<()> {
         eprintln!("⚠️ Erreur création table password_reset_tokens: {e}");
     }
 
+    if let Err(e) = sqlx::query(
+        "CREATE TABLE IF NOT EXISTS oauth_accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        provider TEXT NOT NULL,
+        provider_user_id TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(provider, provider_user_id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )",
+    )
+    .execute(&pool)
+    .await
+    {
+        eprintln!("⚠️ Erreur création table oauth_accounts: {e}");
+    }
+
     forum::init(&pool).await;
 
     let tfidf_engine = load_tfidf_engine(&pool).await;
@@ -646,6 +689,31 @@ async fn main() -> std::io::Result<()> {
     // Clé de session : générée aléatoirement au démarrage (les sessions ne survivent
     // pas à un redémarrage du serveur ; pour la prod, fixe une clé stable via variable d'env).
     let session_key = Key::generate();
+
+    let cert_file = File::open("certs/nova.pem").expect("Impossible d'ouvrir certs/nova.pem");
+
+    let key_file =
+        File::open("certs/nova-key.pem").expect("Impossible d'ouvrir certs/nova-key.pem");
+
+    let mut cert_reader = BufReader::new(cert_file);
+    let mut key_reader = BufReader::new(key_file);
+
+    let cert_chain = certs(&mut cert_reader)
+        .collect::<Result<Vec<_>, _>>()
+        .expect("Impossible de lire le certificat");
+
+    let private_key = private_key(&mut key_reader)
+        .expect("Impossible de lire la clé privée")
+        .expect("Aucune clé privée trouvée");
+
+    aws_lc_rs::default_provider()
+        .install_default()
+        .expect("Impossible d'installer le provider crypto Rustls");
+
+    let tls_config = ServerConfig::builder()
+        .with_no_client_auth()
+        .with_single_cert(cert_chain, private_key)
+        .expect("Impossible de créer la configuration TLS");
 
     HttpServer::new(move || {
         App::new()
@@ -687,8 +755,14 @@ async fn main() -> std::io::Result<()> {
             .route("/reseaux/create", web::get().to(forum::create_topic_page))
             .route("/reseaux/create", web::post().to(forum::create_topic))
             .route("/reseaux/{topic_id}", web::get().to(forum::topic))
-            .route("/reseaux/{topic_id}/comment", web::post().to(forum::add_comment))
-            .route("/reseaux/post/{post_id}/like", web::post().to(forum::like_post))
+            .route(
+                "/reseaux/{topic_id}/comment",
+                web::post().to(forum::add_comment),
+            )
+            .route(
+                "/reseaux/post/{post_id}/like",
+                web::post().to(forum::like_post),
+            )
             .route("/join/{id}", web::get().to(join_via_link))
             .route("/search", web::get().to(search_web))
             .route("/search/images", web::get().to(search_images))
@@ -702,63 +776,54 @@ async fn main() -> std::io::Result<()> {
             .route("/api/projects/{id}", web::delete().to(api_delete_project))
             .route("/api/limits", web::get().to(api_limits))
             .route("/api/history", web::get().to(api_history))
+            .route("/api/ia/chat", web::post().to(api_ia_chat))
     })
-    .bind("127.0.0.1:8080")?
+    .bind_rustls_0_23("127.0.0.1:8080", tls_config)?
     .run()
     .await
 }
 
-/// Lance l'assistant Python `ia_nova` dans une nouvelle fenêtre de terminal
-/// (il est interactif : il faut un vrai terminal pour taper les messages,
-/// contrairement à Docker qui tourne silencieusement en fond).
-fn start_ia_nova_terminal() {
+/// Lance automatiquement l'API Python ia_nova sur le port 3020.
+/// Si l'API est déjà lancée, on ne démarre pas une deuxième instance.
+fn start_ia_nova() {
     std::thread::spawn(|| {
         let Ok(home) = std::env::var("HOME") else {
-            eprintln!("⚠️  Variable HOME introuvable, ia_nova non démarré automatiquement.");
+            eprintln!("⚠️ Variable HOME introuvable, ia_nova non démarré.");
             return;
         };
-        let ia_nova_dir = format!("{home}/nova/ia_nova");
 
-        if !std::path::Path::new(&ia_nova_dir).exists() {
+        let ia_nova_dir = format!("{home}/nova/ia_nova");
+        let api_file = std::path::Path::new(&ia_nova_dir).join("api.py");
+
+        if !api_file.exists() {
             eprintln!(
-                "ℹ️  ~/nova/ia_nova introuvable — assistant ia_nova non démarré automatiquement."
+                "⚠️ {} introuvable — ia_nova ne sera pas démarré.",
+                api_file.display()
             );
             return;
         }
 
-        // Adapte "ia_complete.py" ci-dessous si tu préfères lancer "main.py"
-        let script = "ia_complete.py";
-
-        println!("🧠 Démarrage de ia_nova dans une nouvelle fenêtre de terminal...");
-
-        // On essaie plusieurs émulateurs de terminal courants, dans l'ordre,
-        // jusqu'à ce que l'un d'eux fonctionne.
-        let attempts: Vec<(&str, Vec<&str>)> = vec![
-            ("gnome-terminal", vec!["--", "python3", script]),
-            ("konsole", vec!["-e", "python3", script]),
-            ("xfce4-terminal", vec!["-e", "python3", script]),
-            ("xterm", vec!["-e", "python3", script]),
-        ];
-
-        let mut launched = false;
-        for (terminal, args) in attempts {
-            let result = std::process::Command::new(terminal)
-                .args(&args)
-                .current_dir(&ia_nova_dir)
-                .spawn();
-
-            if result.is_ok() {
-                println!("✅ ia_nova démarré via {terminal}.");
-                launched = true;
-                break;
-            }
+        // Vérifie si ia_nova est déjà lancé sur le port 3020.
+        if std::net::TcpStream::connect("127.0.0.1:3020").is_ok() {
+            println!("✅ ia_nova est déjà lancé sur http://127.0.0.1:3020");
+            return;
         }
 
-        if !launched {
-            eprintln!(
-                "⚠️  Impossible de trouver un terminal graphique pour lancer ia_nova automatiquement.\n\
-                 Lance-le toi-même avec : cd ~/nova/ia_nova && python3 {script}"
-            );
+        println!("🤖 Démarrage automatique de ia_nova...");
+
+        match std::process::Command::new("python3")
+            .arg("api.py")
+            .current_dir(&ia_nova_dir)
+            .spawn()
+        {
+            Ok(_) => {
+                println!("✅ ia_nova démarré sur http://127.0.0.1:3020");
+            }
+
+            Err(e) => {
+                eprintln!("⚠️ Impossible de démarrer ia_nova : {e}");
+                eprintln!("Lancement manuel : cd {ia_nova_dir} && python3 api.py");
+            }
         }
     });
 }

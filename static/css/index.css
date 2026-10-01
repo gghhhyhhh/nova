@@ -1044,19 +1044,23 @@ body {
 }
 
 /* =========================================
-   IA
+   IA NOVA
    ========================================= */
 
 .ia-overlay {
     position: fixed;
-
     inset: 0;
-
     z-index: 980;
 
     display: none;
 
-    background: #08070b;
+    background:
+        radial-gradient(
+            circle at 50% 20%,
+            rgba(123, 9, 64, 0.18),
+            transparent 45%
+        ),
+        #08070b;
 }
 
 .ia-overlay.show {
@@ -1070,77 +1074,374 @@ body {
     display: flex;
     flex-direction: column;
 
-    background: #08070b;
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            rgba(123, 9, 64, 0.12),
+            transparent 40%
+        ),
+        #08070b;
+
+    color: #ffffff;
 }
+
+/* ---------- En-tête ---------- */
 
 .ia-panel-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
 
     flex-shrink: 0;
 
-    padding: 14px 24px;
+    padding: 18px 28px;
 
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    background: rgba(8, 7, 11, 0.92);
+
+    backdrop-filter: blur(16px);
 }
 
-.ia-panel-header span {
+.ia-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ia-logo {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: linear-gradient(
+        135deg,
+        #7b0940,
+        #a31359
+    );
+
+    box-shadow:
+        0 0 20px rgba(123, 9, 64, 0.35);
+
     color: #ffffff;
 
-    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.ia-title strong {
+    display: block;
+
+    color: #ffffff;
+
+    font-size: 1rem;
+}
+
+.ia-title small {
+    display: block;
+
+    margin-top: 2px;
+
+    color: #a9a2ad;
+
+    font-size: 0.75rem;
 }
 
 .ia-panel-close {
-    padding: 4px 10px;
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
 
     background: transparent;
 
-    border: 0;
-    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
 
-    color: #c5bfca;
+    color: #aaa3ad;
 
-    font-size: 1.3rem;
+    font-size: 1rem;
 
     cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .ia-panel-close:hover {
-    background: rgba(123, 9, 64, 0.15);
+    background: rgba(123, 9, 64, 0.18);
+
+    border-color: rgba(123, 9, 64, 0.45);
+
     color: #ffffff;
 }
 
-#iaPanelBody {
-    flex: 1;
+/* ---------- Zone du chat ---------- */
 
-    display: flex;
+.ia-chat {
+    flex: 1;
 
     min-height: 0;
-}
-
-.ia-panel iframe {
-    flex: 1;
-
-    width: 100%;
-
-    border: none;
-}
-
-.ia-panel-fallback {
-    flex: 1;
 
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
 
-    padding: 30px;
+    overflow-y: auto;
+}
 
-    color: #c5bfca;
+.ia-welcome {
+    max-width: 680px;
+
+    margin: auto;
+
+    padding: 40px 24px;
 
     text-align: center;
+}
+
+.ia-welcome-logo {
+    width: 64px;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 20px;
+
+    border-radius: 20px;
+
+    background: linear-gradient(
+        135deg,
+        #7b0940,
+        #a31359
+    );
+
+    box-shadow:
+        0 0 35px rgba(123, 9, 64, 0.35);
+
+    color: #ffffff;
+
+    font-size: 2rem;
+}
+
+.ia-welcome h2 {
+    margin: 0 0 10px;
+
+    color: #ffffff;
+
+    font-size: 1.7rem;
+}
+
+.ia-welcome p {
+    margin: 0;
+
+    color: #aaa3ad;
+
+    line-height: 1.6;
+}
+
+.ia-messages {
+    width: 100%;
+    max-width: 900px;
+
+    margin: 0 auto;
+
+    padding: 20px 24px 30px;
+
+    box-sizing: border-box;
+}
+
+.ia-message {
+    display: flex;
+
+    margin-bottom: 18px;
+}
+
+.ia-message.user {
+    justify-content: flex-end;
+}
+
+.ia-message.assistant {
+    justify-content: flex-start;
+}
+
+.ia-message-content {
+    max-width: 75%;
+
+    padding: 12px 16px;
+
+    border-radius: 16px;
+
+    line-height: 1.55;
+
+    white-space: pre-wrap;
+
+    word-break: break-word;
+}
+
+.ia-message.user .ia-message-content {
+    background: linear-gradient(
+        135deg,
+        #7b0940,
+        #a31359
+    );
+
+    color: #ffffff;
+
+    border-bottom-right-radius: 5px;
+
+    box-shadow:
+        0 5px 20px rgba(123, 9, 64, 0.2);
+}
+
+.ia-message.assistant .ia-message-content {
+    background: #151219;
+
+    border: 1px solid rgba(255, 255, 255, 0.07);
+
+    color: #e8e3e8;
+
+    border-bottom-left-radius: 5px;
+}
+
+/* ---------- Champ de saisie ---------- */
+
+.ia-input-area {
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+
+    width: 100%;
+    max-width: 900px;
+
+    margin: 0 auto;
+
+    padding: 16px 24px 24px;
+
+    box-sizing: border-box;
+}
+
+.ia-input-area textarea {
+    flex: 1;
+
+    min-height: 48px;
+    max-height: 150px;
+
+    padding: 13px 16px;
+
+    resize: none;
+
+    background: #151219;
+
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+
+    outline: none;
+
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 0.95rem;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.ia-input-area textarea::placeholder {
+    color: #77717b;
+}
+
+.ia-input-area textarea:focus {
+    border-color: rgba(123, 9, 64, 0.75);
+
+    box-shadow:
+        0 0 0 3px rgba(123, 9, 64, 0.12);
+}
+
+.ia-input-area button {
+    width: 48px;
+    height: 48px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+    border-radius: 14px;
+
+    background: linear-gradient(
+        135deg,
+        #7b0940,
+        #a31359
+    );
+
+    color: #ffffff;
+
+    font-size: 1.2rem;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 5px 20px rgba(123, 9, 64, 0.25);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.ia-input-area button:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 8px 25px rgba(123, 9, 64, 0.35);
+}
+
+.ia-input-area button:disabled {
+    opacity: 0.5;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 700px) {
+    .ia-panel-header {
+        padding: 14px 16px;
+    }
+
+    .ia-messages {
+        padding: 16px;
+    }
+
+    .ia-input-area {
+        padding: 12px 16px 16px;
+    }
+
+    .ia-message-content {
+        max-width: 88%;
+    }
+
+    .ia-welcome {
+        padding: 30px 20px;
+    }
 }
 
 /* =========================================
