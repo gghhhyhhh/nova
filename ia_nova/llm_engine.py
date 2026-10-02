@@ -66,7 +66,7 @@ class LocalLLM:
 
 
         try:
-            with urllib.request.urlopen(req, timeout=120) as response:
+            with urllib.request.urlopen(req, timeout=60) as response:
 
                 result = json.loads(
                     response.read().decode("utf-8")
