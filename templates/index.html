@@ -201,44 +201,236 @@
     </div>
 
     <div class="ia-overlay" id="iaOverlay">
+
     <div class="ia-panel">
 
+        <!-- ================================
+             HEADER
+             ================================ -->
+
         <div class="ia-panel-header">
+
             <div class="ia-title">
+
                 <span class="ia-logo">✦</span>
+
                 <div>
                     <strong>Assistant IA</strong>
                     <small>NOVA • IA locale</small>
                 </div>
+
             </div>
 
-            <button
-                class="ia-panel-close"
-                id="iaPanelClose"
-                type="button"
-            >
-                ✕
-            </button>
+            <div class="ia-header-actions">
+
+                <button
+                    class="ia-new-chat"
+                    id="iaNewChat"
+                    type="button"
+                    title="Nouveau chat"
+                >
+                    +
+                </button>
+
+                <button
+                    class="ia-panel-close"
+                    id="iaPanelClose"
+                    type="button"
+                    title="Fermer"
+                >
+                    ✕
+                </button>
+
+            </div>
+
         </div>
+
+
+        <!-- ================================
+             CONTENU
+             ================================ -->
 
         <div class="ia-chat" id="iaPanelBody">
 
-            <div class="ia-welcome">
-                <div class="ia-welcome-logo">✦</div>
+            <!-- MENU NOUVEAU CHAT -->
 
-                <h2>Bonjour 👋</h2>
+            <div
+                class="ia-new-chat-screen"
+                id="iaNewChatScreen"
+            >
 
-                <p>
-                    Je suis l'assistant IA de NOVA.
-                    Pose-moi une question pour commencer.
-                </p>
+                <div class="ia-new-chat-content">
+
+                    <div class="ia-welcome-logo">
+                        ✦
+                    </div>
+
+                    <h2>Nouveau chat</h2>
+
+                    <p>
+                        Choisissez le type d'assistance
+                        que vous souhaitez utiliser.
+                    </p>
+
+
+                    <!-- CATEGORIES -->
+
+                    <div class="ia-categories">
+
+
+                        <button
+                            class="ia-category"
+                            type="button"
+                            data-category="chat"
+                        >
+
+                            <span class="ia-category-icon">
+                                💬
+                            </span>
+
+                            <span class="ia-category-info">
+                                <strong>Discussion</strong>
+
+                                <small>
+                                    Discuter avec l'assistant
+                                </small>
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="ia-category"
+                            type="button"
+                            data-category="code"
+                        >
+
+                            <span class="ia-category-icon">
+                                💻
+                            </span>
+
+                            <span class="ia-category-info">
+                                <strong>Code</strong>
+
+                                <small>
+                                    Créer, expliquer et corriger du code
+                                </small>
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="ia-category"
+                            type="button"
+                            data-category="image"
+                        >
+
+                            <span class="ia-category-icon">
+                                🎨
+                            </span>
+
+                            <span class="ia-category-info">
+                                <strong>Générateur d'image</strong>
+
+                                <small>
+                                    Créer une image à partir d'une description
+                                </small>
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="ia-category"
+                            type="button"
+                            data-category="search"
+                        >
+
+                            <span class="ia-category-icon">
+                                🔎
+                            </span>
+
+                            <span class="ia-category-info">
+                                <strong>Recherche</strong>
+
+                                <small>
+                                    Rechercher et analyser des informations
+                                </small>
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="ia-category"
+                            type="button"
+                            data-category="study"
+                        >
+
+                            <span class="ia-category-icon">
+                                📚
+                            </span>
+
+                            <span class="ia-category-info">
+                                <strong>Étude</strong>
+
+                                <small>
+                                    Apprendre, expliquer et s'entraîner
+                                </small>
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="ia-category"
+                            type="button"
+                            data-category="writing"
+                        >
+
+                            <span class="ia-category-icon">
+                                ✍️
+                            </span>
+
+                            <span class="ia-category-info">
+                                <strong>Rédaction</strong>
+
+                                <small>
+                                    Écrire, reformuler et améliorer un texte
+                                </small>
+                            </span>
+
+                        </button>
+
+
+                    </div>
+
+                </div>
+
             </div>
 
-            <div class="ia-messages" id="iaMessages"></div>
+
+            <!-- ================================
+                 ZONE DES MESSAGES
+                 ================================ -->
+
+            <div
+                class="ia-messages"
+                id="iaMessages"
+            ></div>
 
         </div>
 
-        <form class="ia-input-area" id="iaChatForm">
+
+        <!-- ================================
+             INPUT
+             ================================ -->
+
+        <form
+            class="ia-input-area"
+            id="iaChatForm"
+        >
 
             <textarea
                 id="iaMessage"
@@ -259,6 +451,7 @@
         </form>
 
     </div>
+
 </div>
 
     <div class="settings-panel" id="settingsPanel">

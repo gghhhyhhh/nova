@@ -80,6 +80,73 @@ const iaMessages = document.getElementById('iaMessages');
 const iaWelcome = document.querySelector('.ia-welcome');
 const iaSend = document.getElementById('iaSend');
 
+const iaNewChat = document.getElementById('iaNewChat');
+const iaNewChatScreen = document.getElementById('iaNewChatScreen');
+
+function showNewIaChat() {
+    // Efface les anciens messages
+    if (iaMessages) {
+        iaMessages.innerHTML = '';
+    }
+
+    // Affiche l'écran "Nouveau chat"
+    if (iaNewChatScreen) {
+        iaNewChatScreen.style.display = 'flex';
+    }
+
+    // Réinitialise le champ
+    if (iaMessage) {
+        iaMessage.value = '';
+        iaMessage.style.height = 'auto';
+        iaMessage.placeholder = 'Écrire un message...';
+    }
+
+    // Réactive l'envoi
+    if (iaMessage) {
+        iaMessage.disabled = false;
+    }
+
+    if (iaSend) {
+        iaSend.disabled = false;
+    }
+
+    // Remet le focus sur le champ
+    if (iaMessage) {
+        setTimeout(() => {
+            iaMessage.focus();
+        }, 100);
+    }
+}
+
+if (iaNewChat) {
+    iaNewChat.addEventListener('click', function () {
+        showNewIaChat();
+    });
+}
+
+const iaCategories = document.querySelectorAll('.ia-category');
+
+let currentIaCategory = 'chat';
+
+iaCategories.forEach(category => {
+    category.addEventListener('click', function () {
+        currentIaCategory = this.dataset.category;
+
+        if (iaNewChatScreen) {
+            iaNewChatScreen.style.display = 'none';
+        }
+
+        if (iaMessage) {
+            iaMessage.focus();
+        }
+
+        console.log(
+            'Mode IA sélectionné :',
+            currentIaCategory
+        );
+    });
+});
+
 const IA_URL = '/api/ia/chat';
 
 
@@ -183,6 +250,10 @@ if (iaChatForm) {
         // Afficher le message utilisateur
         addIaMessage(message, 'user');
 
+        if (iaNewChatScreen) {
+            iaNewChatScreen.style.display = 'none';
+        }
+
         // Masquer le message de bienvenue
         if (iaWelcome) {
             iaWelcome.style.display = 'none';
@@ -225,7 +296,8 @@ if (iaChatForm) {
                 credentials: 'same-origin',
 
                 body: JSON.stringify({
-                    message: message
+                    message: message,
+                    category: currentIaCategory
                 })
             });
 

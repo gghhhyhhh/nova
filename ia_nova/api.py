@@ -62,6 +62,7 @@ class IAHandler(BaseHTTPRequestHandler):
             data = json.loads(raw_body.decode("utf-8"))
 
             message = str(data.get("message", "")).strip()
+            category = str(data.get("category", "chat")).strip()
 
             if not message:
                 self.send_json(400, {
@@ -70,7 +71,10 @@ class IAHandler(BaseHTTPRequestHandler):
                 })
                 return
 
-            response = assistant.handle(message)
+            response = assistant.handle(
+                message,
+                category=category
+            )
 
             self.send_json(200, {
                 "ok": True,

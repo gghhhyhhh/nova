@@ -439,9 +439,53 @@ class Assistant:
         facts_text = "\n".join(f"- {f}" for f in facts) if facts else "(aucun)"
         return f"Faits mémorisés :\n{facts_text}\n\nHistorique récent :\n{history_text}\n\n{extra}"
 
-    def handle(self, user_input: str) -> str:
+    def handle(self, user_input: str, category: str = "chat") -> str:
         self.memory.add_message("user", user_input)
         lower_input = user_input.lower()
+
+        category_prompts = {
+            "chat": (
+                "Tu es en mode Discussion. "
+                "Réponds naturellement et clairement à l'utilisateur."
+            ),
+
+            "code": (
+                "Tu es en mode Code. "
+                "Concentre-toi sur la programmation, l'explication, "
+                "la correction et l'amélioration du code. "
+                "Donne des exemples concrets lorsque c'est utile."
+            ),
+
+            "image": (
+                "Tu es en mode Générateur d'image. "
+                "Aide l'utilisateur à concevoir précisément une image, "
+                "en décrivant le sujet, le style, la composition, "
+                "la lumière et les détails importants."
+            ),
+
+            "search": (
+                "Tu es en mode Recherche. "
+                "Analyse précisément la demande et privilégie les "
+                "informations vérifiables et structurées."
+            ),
+
+            "study": (
+                "Tu es en mode Étude. "
+                "Explique progressivement les notions, avec des exemples "
+                "simples et adaptés à l'apprentissage."
+            ),
+
+            "writing": (
+                "Tu es en mode Rédaction. "
+                "Aide à écrire, reformuler, corriger et améliorer les textes "
+                "en respectant le style demandé."
+            ),
+        }
+
+        category_instruction = category_prompts.get(
+            category,
+            category_prompts["chat"]
+        )
 
         # 1. mémoriser un fait explicite
         if lower_input.startswith(("retiens que", "souviens-toi que")):
@@ -553,8 +597,13 @@ class Assistant:
             self.memory.add_message("assistant", answer)
             return answer
 
-        # 10. discussion générale
-        prompt = self.build_context() + f"\n\nUtilisateur : {user_input}"
+            # 10. discussion générale
+        prompt = (
+            self.build_context()
+            + f"\n\nMode sélectionné : {category_instruction}"
+            + f"\n\nUtilisateur : {user_input}"
+        )
+
         answer = self.llm.generate(prompt, SYSTEM_PROMPT)
         self.memory.add_message("assistant", answer)
         return answer
