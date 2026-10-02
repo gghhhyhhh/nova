@@ -1866,3 +1866,197 @@ body {
         height: 44px;
     }
 }
+/* ---------- Historique IA ---------- */
+
+.ia-history {
+    width: 260px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 18px 12px;
+
+    box-sizing: border-box;
+
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+
+    background: rgba(5, 4, 8, 0.72);
+
+    overflow-y: auto;
+}
+
+.ia-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 20px;
+
+    padding: 0 6px;
+}
+
+.ia-history-header strong {
+    color: #ffffff;
+
+    font-size: 0.9rem;
+}
+
+.ia-history-close {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: #aaa3ad;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+.ia-history-close:hover {
+    background: rgba(123, 9, 64, 0.18);
+
+    color: #ffffff;
+}
+
+.ia-history-section {
+    margin-bottom: 22px;
+}
+
+.ia-history-section-title {
+    margin: 0 6px 8px;
+
+    color: #77717c;
+
+    font-size: 0.7rem;
+    font-weight: 600;
+
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.ia-history-list {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.ia-history-item {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    padding: 9px 10px;
+
+    box-sizing: border-box;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: #c9c3cc;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.ia-history-item:hover {
+    background: rgba(123, 9, 64, 0.12);
+
+    border-color: rgba(123, 9, 64, 0.22);
+
+    color: #ffffff;
+}
+
+.ia-history-item.active {
+    background: rgba(123, 9, 64, 0.18);
+
+    border-color: rgba(123, 9, 64, 0.35);
+
+    color: #ffffff;
+}
+
+.ia-history-item-title {
+    min-width: 0;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+
+    font-size: 0.8rem;
+}
+
+.ia-history-empty {
+    padding: 8px 6px;
+
+    color: #625d66;
+
+    font-size: 0.75rem;
+}
+
+
+/* ---------- Zone chat avec historique ---------- */
+
+.ia-chat {
+    flex-direction: row;
+}
+
+.ia-messages {
+    flex: 1;
+
+    min-width: 0;
+
+    overflow-y: auto;
+}
+
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 700px) {
+
+    .ia-history {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+        bottom: 0;
+
+        z-index: 20;
+
+        width: 280px;
+
+        box-shadow:
+            12px 0 35px rgba(0, 0, 0, 0.45);
+    }
+
+    .ia-history.hidden {
+        display: none;
+    }
+
+}
+

@@ -63,6 +63,10 @@ class IAHandler(BaseHTTPRequestHandler):
 
             message = str(data.get("message", "")).strip()
             category = str(data.get("category", "chat")).strip()
+            history = data.get("history")
+
+            if not isinstance(history, list):
+                history = []
 
             if not message:
                 self.send_json(400, {
@@ -73,7 +77,8 @@ class IAHandler(BaseHTTPRequestHandler):
 
             response = assistant.handle(
                 message,
-                category=category
+                category=category,
+                history=history
             )
 
             self.send_json(200, {

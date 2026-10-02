@@ -83,7 +83,11 @@ const iaSend = document.getElementById('iaSend');
 const iaNewChat = document.getElementById('iaNewChat');
 const iaNewChatScreen = document.getElementById('iaNewChatScreen');
 
+let currentIaConversationId = null;
+
 function showNewIaChat() {
+    currentIaConversationId = null;
+
     // Efface les anciens messages
     if (iaMessages) {
         iaMessages.innerHTML = '';
@@ -124,6 +128,163 @@ if (iaNewChat) {
     });
 }
 
+
+/* =========================================
+   HISTORIQUE DES CONVERSATIONS IA
+   ========================================= */
+
+const iaHistory = document.getElementById('iaHistory');
+const iaHistoryClose = document.getElementById('iaHistoryClose');
+const iaPinnedList = document.getElementById('iaPinnedList');
+const iaRecentList = document.getElementById('iaRecentList');
+
+async function loadIaHistory() {
+    if (!iaPinnedList || !iaRecentList) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/ia/history');
+
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+            throw new Error(
+                data.error || 'Impossible de charger l’historique.'
+            );
+        }
+
+        iaPinnedList.innerHTML = '';
+        iaRecentList.innerHTML = '';
+
+        const conversations = data.conversations || [];
+
+        const pinned = conversations.filter(
+            conversation => conversation.pinned
+        );
+
+        const recent = conversations.filter(
+            conversation => !conversation.pinned
+        );
+
+        if (pinned.length === 0) {
+            iaPinnedList.innerHTML =
+                '<div class="ia-history-empty">Aucune conversation épinglée.</div>';
+        }
+
+        if (recent.length === 0) {
+            iaRecentList.innerHTML =
+                '<div class="ia-history-empty">Aucune conversation récente.</div>';
+        }
+
+        pinned.forEach(conversation => {
+            iaPinnedList.appendChild(
+                createIaHistoryItem(conversation)
+            );
+        });
+
+        recent.forEach(conversation => {
+            iaRecentList.appendChild(
+                createIaHistoryItem(conversation)
+            );
+        });
+
+    } catch (error) {
+        console.error(
+            'Erreur chargement historique IA :',
+            error
+        );
+
+        iaPinnedList.innerHTML =
+            '<div class="ia-history-empty">Impossible de charger l’historique.</div>';
+
+        iaRecentList.innerHTML = '';
+    }
+}
+
+if (iaHistoryClose && iaHistory) {
+    iaHistoryClose.addEventListener('click', function () {
+        iaHistory.classList.toggle('hidden');
+    });
+}
+
+
+async function loadIaConversation(conversationId) {
+    try {
+        const response = await fetch(
+            `/api/ia/history/${conversationId}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.ok) {
+            throw new Error(
+                data.error || 'Impossible de charger la conversation.'
+            );
+        }
+
+        const conversation = data.conversation;
+
+        currentIaConversationId = conversation.id;
+        currentIaCategory = conversation.category || 'chat';
+
+        if (iaMessages) {
+            iaMessages.innerHTML = '';
+        }
+
+        if (iaNewChatScreen) {
+            iaNewChatScreen.style.display = 'none';
+        }
+
+        const messages = conversation.messages || [];
+
+        messages.forEach(message => {
+            addIaMessage(
+                message.content,
+                message.role
+            );
+        });
+
+        await loadIaHistory();
+
+        if (iaMessage) {
+            iaMessage.focus();
+        }
+
+    } catch (error) {
+        console.error(
+            'Erreur chargement conversation IA :',
+            error
+        );
+    }
+}
+
+
+function createIaHistoryItem(conversation) {
+    const item = document.createElement('button');
+
+    item.type = 'button';
+    item.className = 'ia-history-item';
+
+    if (conversation.id === currentIaConversationId) {
+        item.classList.add('active');
+    }
+
+    const title = document.createElement('span');
+
+    title.className = 'ia-history-item-title';
+    title.textContent =
+        conversation.title || 'Nouveau chat';
+
+    item.appendChild(title);
+
+    item.addEventListener('click', function () {
+        loadIaConversation(conversation.id);
+    });
+
+    return item;
+}
+
 const iaCategories = document.querySelectorAll('.ia-category');
 
 let currentIaCategory = 'chat';
@@ -159,6 +320,8 @@ if (navIA && iaOverlay) {
         event.preventDefault();
 
         iaOverlay.classList.add('show');
+
+        loadIaHistory();
 
         if (iaMessage) {
             setTimeout(() => {
@@ -297,7 +460,8 @@ if (iaChatForm) {
 
                 body: JSON.stringify({
                     message: message,
-                    category: currentIaCategory
+                    category: currentIaCategory,
+                    conversation_id: currentIaConversationId
                 })
             });
 
@@ -315,6 +479,10 @@ if (iaChatForm) {
                 return;
             }
 
+            if (data.conversation_id) {
+                currentIaConversationId = data.conversation_id;
+            }
+
             if (data.response) {
                 addIaMessage(
                     data.response,
@@ -326,6 +494,8 @@ if (iaChatForm) {
                     'assistant'
                 );
             }
+
+            await loadIaHistory();
 
         } catch (error) {
             console.error(

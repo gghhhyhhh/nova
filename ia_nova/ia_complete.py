@@ -408,6 +408,7 @@ class Assistant:
     def __init__(self):
         self.memory = Memory()
         self.llm = LocalLLM()
+        self.external_history = None
 
     def looks_like_code(self, text: str) -> bool:
         markers = ["def ", "import ", "class ", "{", "}", ";", "print(", "SELECT ", "function "]
@@ -422,7 +423,12 @@ class Assistant:
             f.write(code)
             path = f.name
         try:
-            result = subprocess.run([sys.executable, path], capture_output=True, text=True, timeout=10)
+            result = subprocess.run(
+                [sys.executable, path],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
             output = result.stdout
             if result.stderr:
                 output += "\n[stderr]\n" + result.stderr
@@ -432,15 +438,55 @@ class Assistant:
         finally:
             os.remove(path)
 
-    def build_context(self, extra: str = "") -> str:
-        history = self.memory.get_recent_context(8)
-        history_text = "\n".join(f"{m['role']}: {m['content']}" for m in history)
-        facts = self.memory.all_facts()
-        facts_text = "\n".join(f"- {f}" for f in facts) if facts else "(aucun)"
-        return f"Faits mémorisés :\n{facts_text}\n\nHistorique récent :\n{history_text}\n\n{extra}"
+    def build_context(
+        self,
+        extra: str = "",
+        history: List[Dict[str, str]] | None = None
+    ) -> str:
+        if history is not None:
+            current_history = history
+            facts = []
+        elif self.external_history is not None:
+            current_history = self.external_history
+            facts = []
+        else:
+            current_history = self.memory.get_recent_context(8)
+            facts = self.memory.all_facts()
 
-    def handle(self, user_input: str, category: str = "chat") -> str:
-        self.memory.add_message("user", user_input)
+        history_text = "\n".join(
+            f"{m['role']}: {m['content']}"
+            for m in current_history
+        )
+
+        facts_text = (
+            "\n".join(f"- {f}" for f in facts)
+            if facts
+            else "(aucun)"
+        )
+
+        return (
+            f"Faits mémorisés:\n{facts_text}\n\n"
+            f"Historique récent:\n{history_text}\n\n"
+            f"{extra}"
+        )
+
+    def handle(
+        self,
+        user_input: str,
+        category: str = "chat",
+        history: List[Dict[str, str]] | None = None
+    ) -> str:
+
+        self.external_history = history
+
+        if history is None:
+            self.memory.add_message("user", user_input)
+        
+        external_history = history is not None
+
+        if not external_history:
+            self.memory.add_message("user", user_input)
+
         lower_input = user_input.lower()
 
         category_prompts = {
