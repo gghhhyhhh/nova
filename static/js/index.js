@@ -261,9 +261,8 @@ async function loadIaConversation(conversationId) {
 
 
 function createIaHistoryItem(conversation) {
-    const item = document.createElement('button');
+    const item = document.createElement('div');
 
-    item.type = 'button';
     item.className = 'ia-history-item';
 
     if (conversation.id === currentIaConversationId) {
@@ -276,11 +275,103 @@ function createIaHistoryItem(conversation) {
     title.textContent =
         conversation.title || 'Nouveau chat';
 
-    item.appendChild(title);
-
-    item.addEventListener('click', function () {
+    title.addEventListener('click', function () {
         loadIaConversation(conversation.id);
     });
+
+    const actions = document.createElement('div');
+
+    actions.className = 'ia-history-item-actions';
+
+    const pinButton = document.createElement('button');
+
+    pinButton.type = 'button';
+    pinButton.className = 'ia-history-action';
+    pinButton.title = conversation.pinned
+        ? 'Désépingler'
+        : 'Épingler';
+    pinButton.textContent = conversation.pinned
+        ? '📌'
+        : '📍';
+
+    pinButton.addEventListener('click', async function (event) {
+        event.stopPropagation();
+
+        try {
+            const response = await fetch(
+                `/api/ia/history/${conversation.id}/pin`,
+                {
+                    method: 'POST'
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.ok) {
+                throw new Error(
+                    data.error || 'Impossible de modifier l’épinglage.'
+                );
+            }
+
+            await loadIaHistory();
+
+        } catch (error) {
+            console.error(
+                'Erreur épinglage conversation IA :',
+                error
+            );
+        }
+    });
+
+    const deleteButton = document.createElement('button');
+
+    deleteButton.type = 'button';
+    deleteButton.className = 'ia-history-action delete';
+    deleteButton.title = 'Supprimer';
+    deleteButton.textContent = '🗑️';
+
+    deleteButton.addEventListener('click', async function (event) {
+        event.stopPropagation();
+
+        if (!confirm('Supprimer cette conversation ?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/ia/history/${conversation.id}`,
+                {
+                    method: 'DELETE'
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.ok) {
+                throw new Error(
+                    data.error || 'Impossible de supprimer la conversation.'
+                );
+            }
+
+            if (currentIaConversationId === conversation.id) {
+                showNewIaChat();
+            }
+
+            await loadIaHistory();
+
+        } catch (error) {
+            console.error(
+                'Erreur suppression conversation IA :',
+                error
+            );
+        }
+    });
+
+    actions.appendChild(pinButton);
+    actions.appendChild(deleteButton);
+
+    item.appendChild(title);
+    item.appendChild(actions);
 
     return item;
 }
