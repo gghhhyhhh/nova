@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NOVA — Vérification</title>
+
+    <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+
+<body>
+
+<main class="auth-page">
+
+    <section class="auth-card">
+
+        <div class="auth-logo">
+            <h1>NOVA</h1>
+            <p>Récupération du compte</p>
+        </div>
+
+        <h2>Vérification</h2>
+
+        <p class="auth-description">
+            Un code à 6 chiffres a été envoyé à votre adresse email.
+        </p>
+
+        {% if error %}
+            <div class="auth-message error">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        {% if success %}
+            <div class="auth-message success">
+                {{ success }}
+            </div>
+        {% endif %}
+
+        <form class="auth-form" method="post" action="/verify-reset-code">
+
+            <div class="auth-field">
+
+                <label for="code">
+                    Code de vérification
+                </label>
+
+                <input
+                    id="code"
+                    class="code-input"
+                    type="text"
+                    name="code"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    maxlength="6"
+                    minlength="6"
+                    pattern="[0-9]{6}"
+                    placeholder="000000"
+                    required
+                >
+
+            </div>
+
+            <button class="auth-button" type="submit">
+                Vérifier le code
+            </button>
+
+        </form>
+
+        <div class="auth-links">
+
+            <a href="/forgot-password">
+                Renvoyer un nouveau code
+            </a>
+
+            <a href="/login">
+                Retour à la connexion
+            </a>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script src="/static/js/auth.js"></script>
+
+</body>
+</html>

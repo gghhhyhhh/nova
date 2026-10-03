@@ -1233,11 +1233,11 @@ async fn main() -> std::io::Result<()> {
         "CREATE TABLE IF NOT EXISTS password_reset_tokens (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
-            token TEXT NOT NULL UNIQUE,
+            token_hash TEXT NOT NULL UNIQUE,
             expires_at DATETIME NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id)
-        )",
+    )",
     )
     .execute(&pool)
     .await
@@ -1325,11 +1325,19 @@ async fn main() -> std::io::Result<()> {
             )
             .route("/forgot-password", web::post().to(auth::forgot_password))
             .route(
-                "/reset-password/{token}",
+                "/verify-reset-code",
+                web::get().to(auth::verify_reset_code_page),
+            )
+            .route(
+                "/verify-reset-code",
+                web::post().to(auth::verify_reset_code),
+            )
+            .route(
+                "/reset-password",
                 web::get().to(auth::reset_password_page),
             )
             .route(
-                "/reset-password/{token}",
+                "/reset-password",
                 web::post().to(auth::reset_password),
             )
             .route("/", web::get().to(index))
