@@ -1,4 +1,3 @@
-use futures::future::join_all;
 use reqwest;
 use serde::{Deserialize, Serialize};
 
@@ -75,24 +74,24 @@ impl SearchEngine {
         query: &str,
         category: SearchCategory,
     ) -> Result<Vec<SearchResult>, reqwest::Error> {
-        let futures = (1..=3).map(|page| self.search_page(query, category, page));
-
-        let pages = join_all(futures).await;
         let mut all_results = Vec::new();
 
-        for page_result in pages {
-            if let Ok(page_results) = page_result {
-                for result in page_results {
-                    if !all_results
-                        .iter()
-                        .any(|r: &SearchResult| r.url == result.url)
-                    {
-                        all_results.push(result);
-                    }
+        for page in 1..=3 {
+            let page_results = self.search_page(query, category, page).await?;
+
+            for result in page_results {
+                if !all_results
+                    .iter()
+                    .any(|r: &SearchResult| r.url == result.url)
+                {
+                    all_results.push(result);
                 }
             }
+            // Petite pause entre les pages pour espacer les requêtes.
+            if page < 3 {
+                tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
+            }
         }
-
         Ok(all_results)
     }
 
@@ -116,10 +115,10 @@ impl SearchEngine {
         let encoded = urlencoding::encode(query);
 
         let engines = match category {
-            SearchCategory::Web => "bing",
-            SearchCategory::Images => "bing images",
-            SearchCategory::Videos => "bing videos",
-            SearchCategory::News => "bing news",
+            SearchCategory::Web => "duckduckgo",
+            SearchCategory::Images => "duckduckgo images",
+            SearchCategory::Videos => "duckduckgo videos",
+            SearchCategory::News => "duckduckgo news",
             SearchCategory::Maps => "openstreetmap",
         };
 

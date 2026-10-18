@@ -240,7 +240,7 @@ async fn search_handler(
         cached
     } else {
         let engine = SearchEngine::new();
-        match engine.search_fast(&trimmed_query, category).await {
+        match engine.search_full(&trimmed_query, category).await {
             Ok(r) => {
                 let mut cache = CACHE.lock().unwrap();
                 cache.insert(cache_key, r.clone());
@@ -1385,7 +1385,7 @@ async fn main() -> std::io::Result<()> {
                 web::delete().to(api_ia_delete_conversation),
             )
     })
-    .bind_rustls_0_23("127.0.0.1:8080", tls_config)?
+    .bind_rustls_0_23("127.0.0.1:8090", tls_config)?        
     .run()
     .await
 }

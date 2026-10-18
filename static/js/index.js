@@ -148,6 +148,9 @@ async function loadIaHistory() {
 
         const data = await response.json();
 
+        console.log("LOAD MORE - résultats reçus :", allResults.length);
+        console.log("LOAD MORE - résultats :", allResults);
+
         if (!response.ok || !data.ok) {
             throw new Error(
                 data.error || 'Impossible de charger l’historique.'
@@ -216,6 +219,9 @@ async function loadIaConversation(conversationId) {
         );
 
         const data = await response.json();
+
+        console.log("LOAD MORE - résultats reçus :", allResults.length);
+        console.log("LOAD MORE - résultats :", allResults);
 
         if (!response.ok || !data.ok) {
             throw new Error(
@@ -307,6 +313,9 @@ function createIaHistoryItem(conversation) {
 
             const data = await response.json();
 
+        console.log("LOAD MORE - résultats reçus :", allResults.length);
+        console.log("LOAD MORE - résultats :", allResults);
+
             if (!response.ok || !data.ok) {
                 throw new Error(
                     data.error || 'Impossible de modifier l’épinglage.'
@@ -346,6 +355,9 @@ function createIaHistoryItem(conversation) {
             );
 
             const data = await response.json();
+
+        console.log("LOAD MORE - résultats reçus :", allResults.length);
+        console.log("LOAD MORE - résultats :", allResults);
 
             if (!response.ok || !data.ok) {
                 throw new Error(
@@ -557,6 +569,9 @@ if (iaChatForm) {
             });
 
             const data = await response.json();
+
+        console.log("LOAD MORE - résultats reçus :", allResults.length);
+        console.log("LOAD MORE - résultats :", allResults);
 
             // Supprimer "Réflexion..."
             loading.remove();
@@ -1150,16 +1165,23 @@ document.addEventListener(
 
 // --- Chargement lazy des résultats ---
 
-let loadMorePage = 2;
+let loadMorePage = 4;
 
 const shownUrls = new Set(
     Array.from(
         document.querySelectorAll(
             '#resultsGrid .result-url'
         )
-    ).map(
-        el => el.textContent.trim()
-    )
+    ).map(el => {
+        const text = el.textContent.trim();
+
+        if (text.startsWith('[') && text.includes('](')) {
+            const urlPart = text.slice(text.indexOf('](') + 2);
+            return urlPart.split(/[ "\)]/)[0];
+        }
+
+        return text;
+    })
 );
 
 
@@ -1199,12 +1221,21 @@ async function loadMore() {
         const allResults =
             await response.json();
 
+        console.log("LOAD MORE - résultats reçus :", allResults.length);
+        console.log("LOAD MORE - résultats :", allResults);
+
+        console.log("LOAD MORE - résultats reçus :", allResults.length);
+        console.log("LOAD MORE - résultats :", allResults);
+
         // Sécurité anti-doublon :
         // on ignore toute URL déjà affichée à l'écran
         const newResults =
             allResults.filter(
                 r => !shownUrls.has(r.url)
             );
+
+        console.log("LOAD MORE - résultats API :", allResults.length);
+        console.log("LOAD MORE - nouveaux résultats :", newResults.length);
 
         if (allResults.length === 0) {
             btn.textContent =
