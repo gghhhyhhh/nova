@@ -34,48 +34,6 @@ pub struct CreateCommentForm {
 }
 
 pub async fn init(pool: &SqlitePool) {
-    if let Err(e) = sqlx::query(
-        "CREATE TABLE IF NOT EXISTS forum_categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE,
-            description TEXT
-        )",
-    )
-    .execute(pool)
-    .await
-    {
-        eprintln!("Erreur création table forum_categories: {e}");
-    }
-
-    if let Err(e) = sqlx::query(
-        "CREATE TABLE IF NOT EXISTS forum_topics (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            category_id INTEGER NOT NULL,
-            title TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (category_id) REFERENCES forum_categories(id)
-        )",
-    )
-    .execute(pool)
-    .await
-    {
-        eprintln!("Erreur création table forum_topics: {e}");
-    }
-
-    if let Err(e) = sqlx::query(
-        "CREATE TABLE IF NOT EXISTS forum_posts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            topic_id INTEGER NOT NULL,
-            content TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (topic_id) REFERENCES forum_topics(id)
-        )",
-    )
-    .execute(pool)
-    .await
-    {
-        eprintln!("Erreur création table forum_posts: {e}");
-    }
 
     if let Err(e) = sqlx::query(
         "INSERT OR IGNORE INTO forum_categories (id, name, description)

@@ -14,7 +14,7 @@ tokio = { version = "1", features = ["full"] }
 futures = "0.3"
 scraper = "0.19"
 urlencoding = "2"
-sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite"] }
+sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite", "migrate", "macros"] }
 dotenvy = "0.15"
 lazy_static = "1"
 actix-session = { version = "0.9", features = ["cookie-session"] }
