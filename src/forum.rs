@@ -34,7 +34,6 @@ pub struct CreateCommentForm {
 }
 
 pub async fn init(pool: &SqlitePool) {
-
     if let Err(e) = sqlx::query(
         "INSERT OR IGNORE INTO forum_categories (id, name, description)
          VALUES (1, 'Forum', 'Forum public de NOVA')",

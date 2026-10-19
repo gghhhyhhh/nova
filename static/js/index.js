@@ -1300,3 +1300,122 @@ async function loadMore() {
             'none';
     }
 }
+
+// === NOVA : suggestions de recherche ===
+(() => {
+    const input = document.querySelector('.search-input');
+    const box = document.getElementById('searchSuggestions');
+    const form = document.getElementById('searchForm');
+
+    if (!input || !box || !form) return;
+
+    let timer = null;
+    let activeIndex = -1;
+    let suggestions = [];
+
+    function closeSuggestions() {
+        box.hidden = true;
+        box.replaceChildren();
+        activeIndex = -1;
+        suggestions = [];
+    }
+
+    function chooseSuggestion(text) {
+        input.value = text;
+        closeSuggestions();
+        form.requestSubmit();
+    }
+
+    function renderSuggestions(items) {
+        box.replaceChildren();
+        suggestions = items;
+        activeIndex = -1;
+
+        items.forEach((item, index) => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'search-suggestion';
+            option.setAttribute('role', 'option');
+
+            const label = document.createElement('span');
+            label.textContent = item.text;
+
+            const kind = document.createElement('small');
+            kind.textContent = item.kind;
+
+            option.append(label, kind);
+            option.addEventListener('click', () => {
+                chooseSuggestion(item.text);
+            });
+
+            box.appendChild(option);
+        });
+
+        box.hidden = items.length === 0;
+    }
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+
+        const query = input.value.trim();
+        if (query.length === 0) {
+            closeSuggestions();
+            return;
+        }
+
+        timer = setTimeout(async () => {
+            try {
+                const response = await fetch(
+                    '/api/suggestions?q=' + encodeURIComponent(query)
+                );
+
+                if (!response.ok) throw new Error('Suggestions indisponibles');
+
+                const items = await response.json();
+
+                // Ne pas afficher une réponse devenue obsolète.
+                if (input.value.trim() !== query) return;
+
+                renderSuggestions(items);
+            } catch (error) {
+                console.error('Erreur suggestions NOVA :', error);
+                closeSuggestions();
+            }
+        }, 200);
+    });
+
+    input.addEventListener('keydown', (event) => {
+        if (box.hidden || suggestions.length === 0) {
+            if (event.key === 'Escape') closeSuggestions();
+            return;
+        }
+
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            activeIndex = (activeIndex + 1) % suggestions.length;
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            activeIndex = (activeIndex - 1 + suggestions.length)
+                % suggestions.length;
+        } else if (event.key === 'Escape') {
+            closeSuggestions();
+            return;
+        } else if (event.key === 'Enter' && activeIndex >= 0) {
+            event.preventDefault();
+            chooseSuggestion(suggestions[activeIndex].text);
+            return;
+        } else {
+            return;
+        }
+
+        [...box.children].forEach((option, index) => {
+            option.classList.toggle('active', index === activeIndex);
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!form.contains(event.target) && !box.contains(event.target)) {
+            closeSuggestions();
+        }
+    });
+})();

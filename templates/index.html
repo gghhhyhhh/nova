@@ -21,6 +21,8 @@
                     value="{{ query }}" autocomplete="off" />
                 <input type="hidden" name="project" value="{{ current_project | default(value='') }}" />
                 <button type="submit" class="search-btn">Explorer</button>
+            <div id="searchSuggestions" class="search-suggestions" role="listbox"
+                aria-label="Suggestions de recherche" hidden></div>
             </form>
         </div>
     </div>
