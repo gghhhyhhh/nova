@@ -74,6 +74,11 @@
             <input type="hidden" name="project" value="{{ current_project | default(value='') }}" />
             <input type="text" id="subSearchInput" class="sub-search-input" name="refine"
                 placeholder="ex: 2026, résultats, actualités..." autocomplete="off" />
+            <div id="subSearchSuggestions"
+                 class="search-suggestions sub-search-suggestions"
+                 role="listbox"
+                 aria-label="Suggestions pour affiner la recherche"
+                 hidden></div>
             <button type="submit" class="sub-search-btn">Affiner</button>
         </form>
     </div>

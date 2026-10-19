@@ -1419,3 +1419,139 @@ async function loadMore() {
         }
     });
 })();
+
+// === NOVA : suggestions contextuelles pour la sous-recherche ===
+(() => {
+    const input = document.getElementById('subSearchInput');
+    const mainQuery = document.getElementById('subSearchHiddenQuery');
+    const box = document.getElementById('subSearchSuggestions');
+    const form = document.getElementById('subSearchForm');
+
+    if (!input || !mainQuery || !box || !form) return;
+
+    let timer = null;
+    let controller = null;
+    let activeIndex = -1;
+    let suggestions = [];
+
+    function closeSuggestions() {
+        box.hidden = true;
+        box.replaceChildren();
+        suggestions = [];
+        activeIndex = -1;
+    }
+
+    function chooseSuggestion(text) {
+        const base = mainQuery.value.trim();
+        let refinement = text.trim();
+
+        // Google renvoie généralement la recherche complète.
+        // On ne conserve dans le champ que le complément.
+        if (refinement.toLocaleLowerCase().startsWith(base.toLocaleLowerCase())) {
+            refinement = refinement.slice(base.length).trim();
+        }
+
+        input.value = refinement || text;
+        closeSuggestions();
+        form.requestSubmit();
+    }
+
+    function renderSuggestions(items) {
+        box.replaceChildren();
+        suggestions = items;
+        activeIndex = -1;
+
+        items.forEach((item, index) => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'search-suggestion';
+            option.setAttribute('role', 'option');
+
+            const label = document.createElement('span');
+            label.textContent = item.text;
+
+            const kind = document.createElement('small');
+            kind.textContent = item.kind || 'Suggestion';
+
+            option.append(label, kind);
+            option.addEventListener('click', () => chooseSuggestion(item.text));
+            box.appendChild(option);
+        });
+
+        box.hidden = items.length === 0;
+    }
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+
+        if (controller) controller.abort();
+
+        const typed = input.value.trim();
+        const base = mainQuery.value.trim();
+
+        if (!typed || !base) {
+            closeSuggestions();
+            return;
+        }
+
+        timer = setTimeout(async () => {
+            controller = new AbortController();
+
+            try {
+                const contextualQuery = `${base} ${typed}`;
+
+                const response = await fetch(
+                    '/api/suggestions?q=' + encodeURIComponent(contextualQuery),
+                    { signal: controller.signal }
+                );
+
+                if (!response.ok) throw new Error('Suggestions indisponibles');
+
+                const items = await response.json();
+
+                // Ignorer les réponses qui ne correspondent plus au champ.
+                if (input.value.trim() !== typed) return;
+
+                renderSuggestions(items);
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error('Erreur des suggestions contextuelles :', error);
+                    closeSuggestions();
+                }
+            }
+        }, 200);
+    });
+
+    input.addEventListener('keydown', (event) => {
+        if (box.hidden || suggestions.length === 0) {
+            if (event.key === 'Escape') closeSuggestions();
+            return;
+        }
+
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            activeIndex = (activeIndex + 1) % suggestions.length;
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            activeIndex = (activeIndex - 1 + suggestions.length) % suggestions.length;
+        } else if (event.key === 'Escape') {
+            closeSuggestions();
+            return;
+        } else if (event.key === 'Enter' && activeIndex >= 0) {
+            event.preventDefault();
+            chooseSuggestion(suggestions[activeIndex].text);
+            return;
+        } else {
+            return;
+        }
+
+        [...box.children].forEach((element, index) => {
+            element.classList.toggle('active', index === activeIndex);
+            element.setAttribute('aria-selected', String(index === activeIndex));
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!form.contains(event.target)) closeSuggestions();
+    });
+})();
